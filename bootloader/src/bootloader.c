@@ -10,31 +10,18 @@
 enum { PICO_UART_TX_PIN = 16, PICO_UART_RX_PIN = 17 };
 
 #define BOOTLOADER_SIZE (0x8000U)
-#define MAIN_APP_START_ADDRESS (XIP_BASE + BOOTLOADER_SIZE) + 0x100U
-
-static void disable_interrupts(void) {
-    SysTick->CTRL &= ~1;
-
-    NVIC->ICER[0] = 0xFFFFFFFF;
-    NVIC->ICPR[0] = 0xFFFFFFFF;
-}
-
-static void reset_peripherals(void) {
-    reset_block(~(RESETS_RESET_IO_QSPI_BITS | RESETS_RESET_PADS_QSPI_BITS
-                  | RESETS_RESET_SYSCFG_BITS | RESETS_RESET_PLL_SYS_BITS));
-}
+#define MAIN_APP_START_ADDRESS (XIP_BASE + BOOTLOADER_SIZE)
 
 static void jump_to_vtor(uint32_t vtor) {
-    // Derived from the Leaf Labs Cortex-M3 bootloader.
-    // Copyright (c) 2010 LeafLabs LLC.
-    // Modified 2021 Brian Starkey <stark3y@gmail.com>
-    // Originally under The MIT License
+    typedef void (*funcPtr)(void);
+
+    puts("Start app ...");
 
     uint32_t reset_vector = *(volatile uint32_t *) (vtor + 0x04);
-    SCB->VTOR = (volatile uint32_t)(vtor);
+    funcPtr app_main = (funcPtr) reset_vector;
 
-    asm volatile("msr msp, %0" ::"g"(*(volatile uint32_t *) vtor));
-    asm volatile("bx %0" ::"r"(reset_vector));
+    SCB->VTOR = (volatile uint32_t)(vtor);
+    app_main();
 }
 
 static void print_welcome_message(void) {
@@ -53,8 +40,6 @@ int main(void) {
     print_welcome_message();
     sleep_ms(1000);
 
-    disable_interrupts();
-    reset_peripherals();
     jump_to_vtor(MAIN_APP_START_ADDRESS);
 
     return 0;
