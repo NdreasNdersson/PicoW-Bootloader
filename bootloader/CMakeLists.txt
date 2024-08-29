@@ -20,4 +20,3 @@ pico_enable_stdio_uart(${NAME} 1)
 pico_add_extra_outputs(${NAME})
 
 pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/linker_common/bootloader.ld)
-

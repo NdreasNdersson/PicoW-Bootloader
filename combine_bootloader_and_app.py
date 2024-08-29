@@ -10,4 +10,3 @@ with open(APP_FILE, "rb") as file:
 
 with open(COMBINED_FILE, 'wb') as file:
     file.write(bootloader_raw_file + app_raw_file)
-

@@ -11,4 +11,3 @@ if bytes_to_pad < 0:
 padding = bytes([0xFF for _ in range(bytes_to_pad)])
 with open(BOOTLOADER_FILE, 'wb') as file:
     file.write(raw_file + padding)
-

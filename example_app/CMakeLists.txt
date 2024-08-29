@@ -20,4 +20,3 @@ target_link_options(${NAME} PRIVATE
 pico_add_extra_outputs(${NAME})
 
 pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/linker_common/app.ld)
-

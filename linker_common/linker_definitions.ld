@@ -5,4 +5,3 @@ __FLASH_APP_START = __FLASH_START + __BOOTLOADER_LENGTH;
 __APP_LENGTH = 2048k - __BOOTLOADER_LENGTH;
 
 ASSERT((__BOOTLOADER_LENGTH + __APP_LENGTH) <= 2048k, "Flash partitions defined incorrectly");
-
