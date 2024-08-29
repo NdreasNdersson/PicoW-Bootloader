@@ -1,5 +1,5 @@
 BOOTLOADER_SIZE = 0x8000
-BOOTLOADER_FILE = "build/PICO_BOOTLOADER.bin"
+BOOTLOADER_FILE = "build/bootloader/PICO_BOOTLOADER.bin"
 
 with open(BOOTLOADER_FILE, "rb") as file:
     raw_file = file.read()
