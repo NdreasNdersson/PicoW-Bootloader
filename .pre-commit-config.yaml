@@ -1,0 +1,18 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-merge-conflict
+    -   id: check-shebang-scripts-are-executable
+    -   id: check-executables-have-shebangs
+    -   id: check-byte-order-marker
+    -   id: check-added-large-files
+        exclude: 'KiCad/.*'
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 'v17.0.6'
+    hooks:
+    -   id: clang-format
+exclude: 'configs/.*|KiCad/.*|external/.*'
