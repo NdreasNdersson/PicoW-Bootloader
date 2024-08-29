@@ -29,3 +29,5 @@ pico_sdk_init()
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${NAME})
 
+pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/memmap_custom.ld)
+

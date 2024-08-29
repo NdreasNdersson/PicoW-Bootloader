@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "hardware/regs/addressmap.h"
+#include "RP2040.h"
 #include "pico/stdlib.h"
 
 #define PICO_UART uart0
@@ -12,15 +12,18 @@ enum { PICO_UART_TX_PIN = 16, PICO_UART_RX_PIN = 17 };
 #define MAIN_APP_START_ADDRESS (XIP_BASE + BOOTLOADER_SIZE)
 
 static void jump_to_main(void) {
-    puts("Start app");
-    /* typedef void (*void_fn)(void); */
-    /* uint32_t* reset_vector_entry = (uint32_t*)(MAIN_APP_START_ADDRESS + 4U);
-     */
-    /* uint32_t* reset_vector = (uint32_t*)(*reset_vector_entry); */
-    /* void_fn jump_fn = (void_fn)reset_vector; */
+    puts("Start app in 1s ...");
+    sleep_ms(1000);
+    stdio_uart_deinit();
 
-    /* SCB->VTOR = MAIN_APP_START_ADDRESS; */
-    /* jump_fn(); */
+    typedef void (*void_fn)(void);
+    uint32_t* reset_vector_entry = (uint32_t*)(MAIN_APP_START_ADDRESS + 4U);
+
+    uint32_t* reset_vector = (uint32_t*)(*reset_vector_entry);
+    void_fn jump_fn = (void_fn)reset_vector;
+
+    SCB->VTOR = MAIN_APP_START_ADDRESS;
+    jump_fn();
 }
 
 static void print_welcome_message(void) {
@@ -36,8 +39,8 @@ static void print_welcome_message(void) {
 int main(void) {
     stdio_uart_init_full(PICO_UART, PICO_UART_BAUD_RATE, PICO_UART_TX_PIN,
                          PICO_UART_RX_PIN);
-
     print_welcome_message();
+    sleep_ms(1000);
     jump_to_main();
 
     return 0;

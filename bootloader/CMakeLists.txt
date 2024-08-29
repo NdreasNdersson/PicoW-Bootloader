@@ -23,6 +23,7 @@ add_executable(${NAME}
 
 target_link_libraries(${NAME}
     pico_stdlib                        # for core pico functionality
+    cmsis_core
 )
 
 pico_enable_stdio_usb(${NAME} 0)
@@ -30,3 +31,6 @@ pico_enable_stdio_uart(${NAME} 1)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${NAME})
+
+pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/memmap_custom.ld)
+
