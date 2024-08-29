@@ -2,23 +2,17 @@
 #include <stdio.h>
 
 #include "RP2040.h"
-#include "hardware/sync.h"
+#include "common_definitions.h"
+#include "linker_definitions.h"
 #include "pico/stdlib.h"
-
-#define PICO_UART uart0
-#define PICO_UART_BAUD_RATE PICO_DEFAULT_UART_BAUD_RATE
-enum { PICO_UART_TX_PIN = 16, PICO_UART_RX_PIN = 17 };
-
-#define BOOTLOADER_SIZE (0x8000U)
-#define MAIN_APP_START_ADDRESS (XIP_BASE + BOOTLOADER_SIZE)
 
 static void jump_to_vtor(uint32_t vtor) {
     typedef void (*funcPtr)(void);
 
-    puts("Start app ...");
+    printf("Start app at %#X...", vtor);
 
-    uint32_t reset_vector = *(volatile uint32_t *) (vtor + 0x04);
-    funcPtr app_main = (funcPtr) reset_vector;
+    uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
+    funcPtr app_main = (funcPtr)reset_vector;
 
     SCB->VTOR = (volatile uint32_t)(vtor);
     app_main();
@@ -40,7 +34,7 @@ int main(void) {
     print_welcome_message();
     sleep_ms(1000);
 
-    jump_to_vtor(MAIN_APP_START_ADDRESS);
+    jump_to_vtor(ADDR_AS_U32(__FLASH_APP_START));
 
     return 0;
 }

@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#define ADDR_AS_U32(Data) (uint32_t) & (Data)
+
 extern uint32_t __FLASH_START;
 extern uint32_t __FLASH_APP_START;
 
