@@ -6,6 +6,17 @@
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
 
+static bool verify_hash(uint32_t hash_address) {
+    printf("Verify app hash at %#X...\n", hash_address);
+    char *p = (char *)hash_address;
+    printf("Hash in memory is: ");
+    for (int i = 0; i < 32; i++) {
+        printf("%X", *(p++));
+    }
+    puts("");
+    return true;
+}
+
 static void jump_to_vtor(uint32_t vtor) {
     typedef void (*funcPtr)(void);
 
@@ -34,7 +45,9 @@ int main(void) {
     print_welcome_message();
     sleep_ms(1000);
 
-    jump_to_vtor(ADDR_AS_U32(__APP_VTOR));
+    if (verify_hash(ADDR_AS_U32(__APP_HASH_ADDRESS))) {
+        jump_to_vtor(ADDR_AS_U32(__APP_VTOR));
+    }
 
     return 0;
 }

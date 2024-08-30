@@ -11,6 +11,7 @@ extern "C" {
 
 extern uint32_t __FLASH_START;
 extern uint32_t __FLASH_APP_START;
+extern uint32_t __APP_HASH_ADDRESS;
 extern uint32_t __APP_VTOR;
 
 #ifdef __cplusplus
