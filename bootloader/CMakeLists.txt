@@ -1,16 +1,18 @@
 cmake_minimum_required(VERSION 3.13...3.27)
 
 add_executable(${NAME}
-    src/bootloader.c
+    src/bootloader.cpp
 )
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_link_libraries(${NAME}
     pico_stdlib                        # for core pico functionality
     cmsis_core
+    pico_mbedtls
 )
 
 target_link_options(${NAME} PRIVATE
-    "-L${CMAKE_SOURCE_DIR}/linker_common"
+    -L${CMAKE_SOURCE_DIR}/linker_common
 )
 
 pico_enable_stdio_usb(${NAME} 0)
