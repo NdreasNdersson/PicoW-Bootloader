@@ -34,7 +34,7 @@ int main(void) {
     print_welcome_message();
     sleep_ms(1000);
 
-    jump_to_vtor(ADDR_AS_U32(__FLASH_APP_START));
+    jump_to_vtor(ADDR_AS_U32(__APP_VTOR));
 
     return 0;
 }
