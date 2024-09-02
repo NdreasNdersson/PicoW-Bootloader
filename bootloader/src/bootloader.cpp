@@ -1,57 +1,45 @@
-#include <hardware/sync.h>
-#include <mbedtls/sha256.h>
+#include "bootloader.h"
 
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <memory>
 
 #include "RP2040.h"
 #include "common_definitions.h"
 #include "hardware/flash.h"
+#include "hardware/sync.h"
 #include "linker_definitions.h"
+#include "mbedtls/sha256.h"
 #include "pico/stdlib.h"
 
-constexpr std::uint8_t SHA256_DIGEST_SIZE{32U};
-constexpr std::uint32_t TRUE_MAGIC_NUMBER{14253U};
-constexpr std::uint32_t FALSE_NUMBER{0U};
+Bootloader::Bootloader() { read_app_info(); }
 
-union app_info_t {
-    struct content_t {
-        unsigned char app_hash[SHA256_DIGEST_SIZE];
-        unsigned char swap_app_hash[SHA256_DIGEST_SIZE];
-        uint32_t app_size;
-        uint32_t swap_app_size;
-        uint32_t app_downloaded;
-        uint32_t app_backed_up;
-    };
-    struct content_t content;
-    uint8_t raw[FLASH_PAGE_SIZE];
-};
-
-static void read_app_info(std::unique_ptr<app_info_t> &app_info) {
-    memcpy(&app_info->raw[0], (void *)(ADDR_AS_U32(__APP_INFO_ADDRESS)),
+void Bootloader::read_app_info() {
+    memcpy(m_app_info.raw, (void *)(ADDR_AS_U32(__APP_INFO_ADDRESS)),
            FLASH_PAGE_SIZE);
 }
 
-static void write_app_info(std::unique_ptr<app_info_t> &app_info) {
+const void Bootloader::write_app_info() {
     uint32_t saved_interrupts = save_and_disable_interrupts();
     flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(__APP_INFO_ADDRESS),
                       FLASH_SECTOR_SIZE);
     flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(__APP_INFO_ADDRESS),
-                        app_info->raw, FLASH_PAGE_SIZE);
+                        m_app_info.raw, FLASH_PAGE_SIZE);
     restore_interrupts(saved_interrupts);
 }
-
-static auto verify_hash(const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
-                        const uint32_t app_address,
-                        const uint32_t app_size_address) -> bool {
-    /* printf("Verify app hash at %#X with calculated hash at %#X\n", hash_address, app_address); */
-
-    /* unsigned char stored_sha256[SHA256_DIGEST_SIZE]; */
-    /* memcpy(stored_sha256, (void *)hash_address, SHA256_DIGEST_SIZE); */
-
+auto Bootloader::verify_app_hash() -> bool {
+    return verify_hash(m_app_info.content.app_hash, ADDR_AS_U32(__APP_ADDRESS),
+                       ADDR_AS_U32(__APP_SIZE_ADDRESS));
+}
+auto Bootloader::verify_swap_app_hash() -> bool {
+    return verify_hash(m_app_info.content.swap_app_hash,
+                       ADDR_AS_U32(__SWAP_APP_ADDRESS),
+                       ADDR_AS_U32(__SWAP_APP_SIZE_ADDRESS));
+}
+auto Bootloader::verify_hash(
+    const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
+    const uint32_t app_address, const uint32_t app_size_address) -> bool {
     mbedtls_sha256_context sha256_ctx;
     mbedtls_sha256_init(&sha256_ctx);
 
@@ -94,7 +82,7 @@ static auto verify_hash(const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
     return hash_matched;
 }
 
-static void jump_to_vtor(const uint32_t vtor) {
+void Bootloader::jump_to_vtor(const uint32_t vtor) {
     typedef void (*funcPtr)();
 
     printf("Start app at %#X...", vtor);
@@ -106,12 +94,7 @@ static void jump_to_vtor(const uint32_t vtor) {
     app_main();
 }
 
-static auto check_download_app_flag() -> bool {
-    return TRUE_MAGIC_NUMBER ==
-           (*((std::uint32_t *)ADDR_AS_U32(__APP_DOWNLOADED_FLAG_ADDRESS)));
-}
-
-static void swap_app_images(std::unique_ptr<app_info_t> &app_info) {
+void Bootloader::swap_app_images() {
     uint8_t swap_buffer_app[FLASH_SECTOR_SIZE];
     uint8_t swap_buffer_downloaded_app[FLASH_SECTOR_SIZE];
 
@@ -145,59 +128,14 @@ static void swap_app_images(std::unique_ptr<app_info_t> &app_info) {
 
     // Update app info
     unsigned char temp_hash[SHA256_DIGEST_SIZE];
-    memcpy(temp_hash, app_info->content.app_hash, SHA256_DIGEST_SIZE);
-    memcpy(app_info->content.app_hash, app_info->content.swap_app_hash,
+    memcpy(temp_hash, m_app_info.content.app_hash, SHA256_DIGEST_SIZE);
+    memcpy(m_app_info.content.app_hash, m_app_info.content.swap_app_hash,
            SHA256_DIGEST_SIZE);
-    memcpy(app_info->content.swap_app_hash, temp_hash, SHA256_DIGEST_SIZE);
-    app_info->content.app_size = app_info->content.swap_app_size;
-    app_info->content.swap_app_size = app_info->content.app_size;
-    app_info->content.app_backed_up = TRUE_MAGIC_NUMBER;
-    app_info->content.app_downloaded = FALSE_NUMBER;
+    memcpy(m_app_info.content.swap_app_hash, temp_hash, SHA256_DIGEST_SIZE);
+    m_app_info.content.app_size = m_app_info.content.swap_app_size;
+    m_app_info.content.swap_app_size = m_app_info.content.app_size;
+    m_app_info.content.app_backed_up = TRUE_MAGIC_NUMBER;
+    m_app_info.content.app_downloaded = FALSE_NUMBER;
 
-    write_app_info(app_info);
-}
-
-static void print_welcome_message() {
-    puts("");
-    puts("******************************************************");
-    puts("*                                                    *");
-    puts("*           Raspberry Pi Pico W Bootloader           *");
-    puts("*                                                    *");
-    puts("******************************************************");
-    puts("");
-}
-
-auto main() -> int {
-    stdio_uart_init_full(PICO_UART, PICO_UART_BAUD_RATE, PICO_UART_TX_PIN,
-                         PICO_UART_RX_PIN);
-    print_welcome_message();
-    sleep_ms(1000);
-
-    assert(SHA256_DIGEST_SIZE == __APP_HASH_LENGTH);
-    assert(4 == __APP_INFO_FLAG_LENGTH);
-    assert(4 == __APP_SIZE_LENGTH);
-
-    auto app_info = std::make_unique<app_info_t>();
-    read_app_info(app_info);
-    if (check_download_app_flag()) {
-        puts("New app was downloaded!");
-        if (verify_hash(app_info->content.swap_app_hash,
-                        ADDR_AS_U32(__SWAP_APP_ADDRESS),
-                        ADDR_AS_U32(__SWAP_APP_SIZE_ADDRESS))) {
-            puts("New app hash was verified, swap images!");
-            swap_app_images(app_info);
-        } else {
-            puts("New app hash verification FAILED!");
-        }
-    }
-
-    if (verify_hash(app_info->content.app_hash, ADDR_AS_U32(__APP_ADDRESS),
-                    ADDR_AS_U32(__APP_SIZE_ADDRESS))) {
-        jump_to_vtor(ADDR_AS_U32(__APP_ADDRESS));
-    }
-    puts("Hash verification failed");
-    while (true) {
-    }
-
-    return 0;
+    write_app_info();
 }
