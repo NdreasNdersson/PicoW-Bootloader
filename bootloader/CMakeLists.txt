@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13...3.27)
 
 add_executable(${NAME}
+    src/main.cpp
     src/bootloader.cpp
 )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
