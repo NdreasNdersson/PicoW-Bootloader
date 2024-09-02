@@ -1,6 +1,6 @@
 import hashlib
 
-add_download_app = True
+add_download_app = False
 
 # Constants
 BOOTLOADER_SIZE = 0x8000
@@ -16,8 +16,8 @@ FALSE_VAL = 0
 
 
 def create_app_info(raw_file, set_download_flag=False):
-    app_hash = hashlib.sha256(app_raw_file).digest()
-    app_size = len(app_raw_file).to_bytes(4, "little")
+    app_hash = hashlib.sha256(raw_file).digest()
+    app_size = len(raw_file).to_bytes(4, "little")
     if set_download_flag:
         app_download_flag = TRUE_VAL.to_bytes(4, "little")
     else:
@@ -27,7 +27,7 @@ def create_app_info(raw_file, set_download_flag=False):
     app_info_padding = bytes([0xFF for _ in range(APP_INFO_SIZE - len(app_info))])
 
     print(
-        f"Add {len(app_hash)} bytes app hash to binary: {hashlib.sha256(app_raw_file).hexdigest()}"
+        f"Add {len(app_hash)} bytes app hash to binary: {hashlib.sha256(raw_file).hexdigest()}"
     )
     print(f"Add {len(app_size)} bytes app size")
     print(f"Add {len(app_download_flag)} bytes app download flag")
@@ -68,6 +68,10 @@ with open(COMBINED_FILE, "wb") as file:
             + create_app_info(app_download_raw_file, True)
             + app_download_raw_file
         )
+    else:
+        app_padding = bytes([0xFF for _ in range(APP_SIZE - len(app_raw_file))])
+        raw_content += app_padding + create_app_info(bytes(0))
+
     file.write(raw_content)
 
 print(f"Total {len(raw_content)} bytes written")

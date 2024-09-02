@@ -68,7 +68,6 @@ static void jump_to_vtor(const uint32_t vtor) {
 }
 
 static auto check_download_app_flag() -> bool {
-    puts("Check if new app was downloaded");
     return TRUE_MAGIC_NUMBER == (*((std::uint32_t *)ADDR_AS_U32(
                                     __DOWNLOAD_APP_DOWNLOAD_FLAG_ADDRESS)));
 }
