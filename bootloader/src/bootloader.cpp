@@ -1,5 +1,6 @@
 #include <mbedtls/sha256.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -10,6 +11,7 @@
 #include "pico/stdlib.h"
 
 constexpr std::uint8_t SHA256_DIGEST_SIZE{32};
+constexpr std::uint32_t TRUE_MAGIC_NUMBER{14253};
 
 static auto verify_hash(const uint32_t hash_address,
                         const uint32_t app_size_address) -> bool {
@@ -65,6 +67,12 @@ static void jump_to_vtor(const uint32_t vtor) {
     app_main();
 }
 
+static auto check_download_app_flag() -> bool {
+    puts("Check if new app was downloaded");
+    return TRUE_MAGIC_NUMBER == (*((std::uint32_t *)ADDR_AS_U32(
+                                    __DOWNLOAD_APP_DOWNLOAD_FLAG_ADDRESS)));
+}
+
 static void print_welcome_message() {
     puts("");
     puts("******************************************************");
@@ -80,6 +88,20 @@ auto main() -> int {
                          PICO_UART_RX_PIN);
     print_welcome_message();
     sleep_ms(1000);
+
+    assert(SHA256_DIGEST_SIZE == __APP_HASH_LENGTH);
+    assert(4 == __APP_SIZE_LENGTH);
+    assert(4 == __APP_DOWNLOAD_FLAG_LENGTH);
+
+    if (check_download_app_flag()) {
+        puts("New app was downloaded!");
+        if (verify_hash(ADDR_AS_U32(__DOWNLOAD_APP_HASH_ADDRESS),
+                        ADDR_AS_U32(__DOWNLOAD_APP_SIZE_ADDRESS))) {
+            puts("New app hash was verified!");
+        } else {
+            puts("New app hash verification FAILED!");
+        }
+    }
 
     if (verify_hash(ADDR_AS_U32(__APP_HASH_ADDRESS),
                     ADDR_AS_U32(__APP_SIZE_ADDRESS))) {

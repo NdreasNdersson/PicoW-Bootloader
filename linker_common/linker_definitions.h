@@ -15,6 +15,11 @@ extern uint32_t __APP_SIZE_ADDRESS;
 extern uint32_t __APP_SIZE_LENGTH;
 extern uint32_t __APP_ADDRESS;
 
+extern uint32_t __DOWNLOAD_APP_HASH_ADDRESS;
+extern uint32_t __DOWNLOAD_APP_SIZE_ADDRESS;
+extern uint32_t __DOWNLOAD_APP_DOWNLOAD_FLAG_ADDRESS;
+extern uint32_t __DOWNLOAD_APP_ADDRESS;
+
 #ifdef __cplusplus
 }
 #endif
