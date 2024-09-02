@@ -1,11 +1,12 @@
 import hashlib
 
-add_download_app = False
+add_download_app = True
 
 # Constants
 BOOTLOADER_SIZE = 0x8000
-APP_INFO_SIZE = 0x100
-APP_SIZE = 0xFBF00
+APP_INFO_SIZE = 0x1000
+APP_INFO_FLAG_SIZE = 0x4
+APP_SIZE = 0xFB000
 BOOTLOADER_FILE = "build/bootloader/PICO_BOOTLOADER.bin"
 APP_FILE = "build/example_app/PICO_BOOTLOADER_EXAMPLE_APP.bin"
 APP_DOWNLOAD_FILE = "build/example_app/PICO_BOOTLOADER_EXAMPLE_APP_2.bin"
@@ -15,15 +16,17 @@ TRUE_VAL = 14253
 FALSE_VAL = 0
 
 
-def create_app_info(raw_file, set_download_flag=False):
+def prepend_app_info(raw_file, set_download_flag=False):
     app_hash = hashlib.sha256(raw_file).digest()
-    app_size = len(raw_file).to_bytes(4, "little")
+    app_size = len(raw_file).to_bytes(APP_INFO_FLAG_SIZE, "little")
     if set_download_flag:
-        app_download_flag = TRUE_VAL.to_bytes(4, "little")
+        app_download_flag = TRUE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
     else:
-        app_download_flag = FALSE_VAL.to_bytes(4, "little")
+        app_download_flag = FALSE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
 
-    app_info = app_hash + app_size + app_download_flag
+    app_restore_flag = FALSE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
+
+    app_info = app_hash + app_size + app_download_flag + app_restore_flag
     app_info_padding = bytes([0xFF for _ in range(APP_INFO_SIZE - len(app_info))])
 
     print(
@@ -31,10 +34,11 @@ def create_app_info(raw_file, set_download_flag=False):
     )
     print(f"Add {len(app_size)} bytes app size")
     print(f"Add {len(app_download_flag)} bytes app download flag")
+    print(f"Add {len(app_restore_flag)} bytes app download flag")
     print(f"Add {len(app_info_padding)} bytes app info padding")
     print(f"Add {len(app_raw_file)} bytes app")
 
-    return app_info + app_info_padding
+    return app_info + app_info_padding + raw_file
 
 
 with open(BOOTLOADER_FILE, "rb") as file:
@@ -55,22 +59,15 @@ with open(APP_DOWNLOAD_FILE, "rb") as file:
 
 with open(COMBINED_FILE, "wb") as file:
     raw_content = (
-        bootloader_raw_file
-        + bootloader_padding
-        + create_app_info(app_raw_file)
-        + app_raw_file
+        bootloader_raw_file + bootloader_padding + prepend_app_info(app_raw_file)
     )
 
     if add_download_app:
         app_padding = bytes([0xFF for _ in range(APP_SIZE - len(app_raw_file))])
-        raw_content += (
-            app_padding
-            + create_app_info(app_download_raw_file, True)
-            + app_download_raw_file
-        )
+        raw_content += app_padding + prepend_app_info(app_download_raw_file, True)
     else:
         app_padding = bytes([0xFF for _ in range(APP_SIZE - len(app_raw_file))])
-        raw_content += app_padding + create_app_info(bytes(0))
+        raw_content += app_padding + prepend_app_info(bytes(0))
 
     file.write(raw_content)
 
