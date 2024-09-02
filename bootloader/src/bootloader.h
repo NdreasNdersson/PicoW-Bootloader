@@ -30,7 +30,7 @@ class Bootloader {
 
     auto verify_app_hash() -> bool;
     auto verify_swap_app_hash() -> bool;
-    static void jump_to_vtor(const uint32_t vtor);
+    static void start_user_app();
     static auto check_download_app_flag() -> bool {
         return TRUE_MAGIC_NUMBER ==
                (*((std::uint32_t *)ADDR_AS_U32(__APP_DOWNLOADED_FLAG_ADDRESS)));

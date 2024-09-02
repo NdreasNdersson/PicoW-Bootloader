@@ -1,15 +1,9 @@
 #include <cassert>
-#include <cstdint>
 #include <cstdio>
-#include <cstring>
 
-#include "RP2040.h"
 #include "bootloader.h"
 #include "common_definitions.h"
-#include "hardware/flash.h"
-#include "hardware/sync.h"
 #include "linker_definitions.h"
-#include "mbedtls/sha256.h"
 #include "pico/stdlib.h"
 
 static void print_welcome_message() {
@@ -44,7 +38,7 @@ auto main() -> int {
     }
 
     if (bootloader.verify_app_hash()) {
-        bootloader.jump_to_vtor(ADDR_AS_U32(__APP_ADDRESS));
+        bootloader.start_user_app();
     }
     puts("Hash verification failed");
     while (true) {

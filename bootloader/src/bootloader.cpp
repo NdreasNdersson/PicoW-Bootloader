@@ -1,12 +1,10 @@
 #include "bootloader.h"
 
-#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 
 #include "RP2040.h"
-#include "common_definitions.h"
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "linker_definitions.h"
@@ -16,7 +14,8 @@
 Bootloader::Bootloader() { read_app_info(); }
 
 void Bootloader::read_app_info() {
-    memcpy(m_app_info.raw, (void *)(ADDR_AS_U32(__APP_INFO_ADDRESS)),
+    memcpy(m_app_info.raw,
+           reinterpret_cast<void *>(ADDR_AS_U32(__APP_INFO_ADDRESS)),
            FLASH_PAGE_SIZE);
 }
 
@@ -82,9 +81,10 @@ auto Bootloader::verify_hash(
     return hash_matched;
 }
 
-void Bootloader::jump_to_vtor(const uint32_t vtor) {
+void Bootloader::start_user_app() {
     typedef void (*funcPtr)();
 
+    auto vtor{ADDR_AS_U32(__APP_ADDRESS)};
     printf("Start app at %#X...", vtor);
 
     uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
@@ -105,12 +105,13 @@ void Bootloader::swap_app_images() {
     uint32_t saved_interrupts = save_and_disable_interrupts();
     for (uint16_t i{0}; i < SECTORS_TO_SWAP; i++) {
         memcpy(swap_buffer_app,
-               (void *)(ADDR_AS_U32(__APP_ADDRESS) + i * FLASH_SECTOR_SIZE),
+               reinterpret_cast<void *>(ADDR_AS_U32(__APP_ADDRESS) +
+                                        i * FLASH_SECTOR_SIZE),
                FLASH_SECTOR_SIZE);
-        memcpy(
-            swap_buffer_downloaded_app,
-            (void *)(ADDR_AS_U32(__SWAP_APP_ADDRESS) + i * FLASH_SECTOR_SIZE),
-            FLASH_SECTOR_SIZE);
+        memcpy(swap_buffer_downloaded_app,
+               reinterpret_cast<void *>(ADDR_AS_U32(__SWAP_APP_ADDRESS) +
+                                        i * FLASH_SECTOR_SIZE),
+               FLASH_SECTOR_SIZE);
         flash_range_erase(
             ADDR_WITH_XIP_OFFSET_AS_U32(__APP_ADDRESS) + i * FLASH_SECTOR_SIZE,
             FLASH_SECTOR_SIZE);
