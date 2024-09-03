@@ -22,9 +22,9 @@ auto main() -> int {
     print_welcome_message();
     sleep_ms(1000);
 
-    assert(SHA256_DIGEST_SIZE == __APP_HASH_LENGTH);
-    assert(4 == __APP_INFO_FLAG_LENGTH);
-    assert(4 == __APP_SIZE_LENGTH);
+    assert(SHA256_DIGEST_SIZE == ADDR_AS_U32(__APP_HASH_LENGTH));
+    assert(4 == ADDR_AS_U32(__APP_INFO_FLAG_LENGTH));
+    assert(4 == ADDR_AS_U32(__APP_SIZE_LENGTH));
 
     auto bootloader = Bootloader();
     if (bootloader.check_download_app_flag()) {

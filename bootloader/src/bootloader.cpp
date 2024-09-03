@@ -85,7 +85,7 @@ void Bootloader::start_user_app() {
     typedef void (*funcPtr)();
 
     auto vtor{ADDR_AS_U32(__APP_ADDRESS)};
-    printf("Start app at %#X...", vtor);
+    printf("Start app at %#X...\n", vtor);
 
     uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
     auto app_main = (funcPtr)reset_vector;
