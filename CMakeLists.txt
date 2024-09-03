@@ -20,4 +20,5 @@ include_directories(linker_common)
 include_directories(include_common)
 
 add_subdirectory(bootloader)
+add_subdirectory(bootloader_lib)
 add_subdirectory(example_app)
