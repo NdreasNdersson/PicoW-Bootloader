@@ -14,13 +14,13 @@ target_link_libraries(${NAME}
 )
 
 target_link_options(${NAME} PRIVATE
-    "-L${CMAKE_SOURCE_DIR}/linker_common"
+    -L${CMAKE_CURRENT_SOURCE_DIR}/../linker_common
 )
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${NAME})
 
-pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/linker_common/app.ld)
+pico_set_linker_script(${NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../linker_common/app.ld)
 
 # Blink fast
 set(NAME ${NAME}_2)
@@ -34,10 +34,10 @@ target_link_libraries(${NAME}
 )
 
 target_link_options(${NAME} PRIVATE
-    "-L${CMAKE_SOURCE_DIR}/linker_common"
+    -L${CMAKE_CURRENT_SOURCE_DIR}/../linker_common
 )
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${NAME})
 
-pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/linker_common/app.ld)
+pico_set_linker_script(${NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../linker_common/app.ld)
