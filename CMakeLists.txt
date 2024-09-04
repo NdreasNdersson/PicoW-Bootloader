@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # initialize pico-sdk from submodule
 # note: this must happen before project()
-include(external/pico-sdk/pico_sdk_init.cmake)
+include(${CMAKE_SOURCE_DIR}/external/pico-sdk/pico_sdk_init.cmake)
 
 project(${NAME})
 set(CMAKE_C_STANDARD 11)
@@ -20,4 +20,5 @@ include_directories(linker_common)
 include_directories(include_common)
 
 add_subdirectory(bootloader)
+add_subdirectory(bootloader_lib)
 add_subdirectory(example_app)

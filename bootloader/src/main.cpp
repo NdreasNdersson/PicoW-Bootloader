@@ -2,6 +2,7 @@
 #include <cstdio>
 
 #include "bootloader.h"
+#include "bootloader_lib.h"
 #include "common_definitions.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
@@ -22,14 +23,15 @@ auto main() -> int {
     print_welcome_message();
     sleep_ms(1000);
 
-    assert(SHA256_DIGEST_SIZE == __APP_HASH_LENGTH);
-    assert(4 == __APP_INFO_FLAG_LENGTH);
-    assert(4 == __APP_SIZE_LENGTH);
+    assert(SHA256_DIGEST_SIZE == ADDR_AS_U32(__APP_HASH_LENGTH));
+    assert(4 == ADDR_AS_U32(__APP_INFO_FLAG_LENGTH));
+    assert(4 == ADDR_AS_U32(__APP_SIZE_LENGTH));
 
     auto bootloader = Bootloader();
+    auto software_download = SoftwareDownload();
     if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
-        if (bootloader.verify_swap_app_hash()) {
+        if (software_download.verify_swap_app_hash()) {
             puts("New app hash was verified, swap images!");
             bootloader.swap_app_images();
         } else {
@@ -37,7 +39,7 @@ auto main() -> int {
         }
     }
 
-    if (bootloader.verify_app_hash()) {
+    if (software_download.verify_app_hash()) {
         bootloader.start_user_app();
     }
     puts("Hash verification failed");

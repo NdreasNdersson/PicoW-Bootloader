@@ -1,6 +1,7 @@
-import hashlib
+#!/usr/bin/python3
 
-add_download_app = True
+import argparse
+import hashlib
 
 # Constants
 BOOTLOADER_SIZE = 0x8000
@@ -37,17 +38,26 @@ def create_app_info(raw_file, download_raw_file=bytes(0)):
         )
 
     app_size = len(raw_file).to_bytes(APP_INFO_FLAG_SIZE, "little")
-    print(f"Add {len(app_size)} bytes app size")
+    print(
+        f"Add {len(app_size)} bytes app size: {len(raw_file)} (max allowed:"
+        f" {APP_SIZE})"
+    )
     download_app_size = len(download_raw_file).to_bytes(
         APP_INFO_FLAG_SIZE, "little"
     )
-    print(f"Add {len(download_app_size)} bytes download app size")
+    print(
+        f"Add {len(download_app_size)} bytes download app size:"
+        f" {len(download_raw_file)} (max allowed: {APP_SIZE})"
+    )
     if download_raw_file != bytes(0):
         app_download_flag = TRUE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
+        print(f"Add {len(app_download_flag)} bytes app downloaded flag: True")
     else:
         app_download_flag = FALSE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
+        print(f"Add {len(app_download_flag)} bytes app downloaded flag: False")
 
-    app_restore_flag = FALSE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
+    app_backed_up_flag = FALSE_VAL.to_bytes(APP_INFO_FLAG_SIZE, "little")
+    print(f"Add {len(app_backed_up_flag)} bytes app backed up flag: False")
 
     app_info = (
         app_hash
@@ -55,68 +65,94 @@ def create_app_info(raw_file, download_raw_file=bytes(0)):
         + app_size
         + download_app_size
         + app_download_flag
-        + app_restore_flag
+        + app_backed_up_flag
     )
     app_info_padding = bytes(
         [0xFF for _ in range(APP_INFO_SIZE - len(app_info))]
     )
 
-    print(f"Add {len(app_download_flag)} bytes app downloaded flag")
-    print(f"Add {len(app_restore_flag)} bytes app backed up flag")
     print(f"Add {len(app_info_padding)} bytes app info padding")
 
     return app_info + app_info_padding
 
 
-with open(BOOTLOADER_FILE, "rb") as file:
-    bootloader_raw_file = file.read()
+def main():
+    parser = argparse.ArgumentParser(
+        description="Combine bootloader, generated app info and app"
+    )
+    parser.add_argument(
+        "--bootloader-file",
+        default=BOOTLOADER_FILE,
+        help="path to bootloader .bin file",
+    )
+    parser.add_argument(
+        "--app-file", default=APP_FILE, help="path to app .bin file"
+    )
+    parser.add_argument(
+        "--test-app-download-file",
+        default=APP_DOWNLOAD_FILE,
+        help="path to app .bin file to add to download slot",
+    )
+    parser.add_argument(
+        "--test-app-download",
+        action="store_true",
+        help="flag to add app to download slot",
+    )
 
-bootloader_padding = bytes(
-    [0xFF for _ in range(BOOTLOADER_SIZE - len(bootloader_raw_file))]
-)
+    args = parser.parse_args()
 
-print(f"Add {len(bootloader_raw_file)} bytes bootloader")
-print(f"Add {len(bootloader_padding)} bytes bootloader padding")
+    with open(args.bootloader_file, "rb") as file:
+        bootloader_raw_file = file.read()
 
-with open(APP_FILE, "rb") as file:
-    app_raw_file = file.read()
+    bootloader_padding = bytes(
+        [0xFF for _ in range(BOOTLOADER_SIZE - len(bootloader_raw_file))]
+    )
 
-with open(APP_DOWNLOAD_FILE, "rb") as file:
-    app_download_raw_file = file.read()
+    print(f"Add {len(bootloader_raw_file)} bytes bootloader")
+    print(f"Add {len(bootloader_padding)} bytes bootloader padding")
 
-with open(COMBINED_FILE, "wb") as file:
+    with open(args.app_file, "rb") as file:
+        app_raw_file = file.read()
 
-    storage_padding = bytes([0xFF for _ in range(APP_STORAGE_SIZE)])
-    if add_download_app:
-        app_padding = bytes(
-            [0xFF for _ in range(APP_SIZE - len(app_raw_file))]
-        )
-        raw_content = (
-            bootloader_raw_file
-            + bootloader_padding
-            + create_app_info(app_raw_file, app_download_raw_file)
-            + storage_padding
-            + app_raw_file
-            + app_padding
-            + app_download_raw_file
-        )
-        print(f"Add {len(storage_padding)} bytes storage padding")
-        print(
-            f"Add {len(app_raw_file)} bytes app with {len(app_padding)} bytes"
-            " padding"
-        )
-        print(f"Add {len(app_download_raw_file)} bytes app")
-    else:
-        raw_content = (
-            bootloader_raw_file
-            + bootloader_padding
-            + create_app_info(app_raw_file)
-            + storage_padding
-            + app_raw_file
-        )
-        print(f"Add {len(storage_padding)} bytes storage padding")
-        print(f"Add {len(app_raw_file)} bytes app")
+    with open(COMBINED_FILE, "wb") as file:
+        storage_padding = bytes([0xFF for _ in range(APP_STORAGE_SIZE)])
+        if args.test_app_download:
+            with open(args.test_app_download_file, "rb") as file:
+                app_download_raw_file = file.read()
 
-    file.write(raw_content)
+            app_padding = bytes(
+                [0xFF for _ in range(APP_SIZE - len(app_raw_file))]
+            )
+            raw_content = (
+                bootloader_raw_file
+                + bootloader_padding
+                + create_app_info(app_raw_file, app_download_raw_file)
+                + storage_padding
+                + app_raw_file
+                + app_padding
+                + app_download_raw_file
+            )
+            print(f"Add {len(storage_padding)} bytes storage padding")
+            print(
+                f"Add {len(app_raw_file)} bytes app with"
+                f" {len(app_padding)} bytes padding"
+            )
+            print(f"Add {len(app_download_raw_file)} bytes app")
+        else:
+            raw_content = (
+                bootloader_raw_file
+                + bootloader_padding
+                + create_app_info(app_raw_file)
+                + storage_padding
+                + app_raw_file
+            )
+            print(f"Add {len(storage_padding)} bytes storage padding")
+            print(f"Add {len(app_raw_file)} bytes app")
 
-print(f"Total {len(raw_content)} bytes written")
+        file.write(raw_content)
+
+    print(f"Total {len(raw_content)} bytes written")
+
+
+if __name__ == "__main__":
+    main()

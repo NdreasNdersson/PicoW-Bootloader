@@ -8,7 +8,6 @@
 #include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "linker_definitions.h"
-#include "mbedtls/sha256.h"
 #include "pico/stdlib.h"
 
 Bootloader::Bootloader() { read_app_info(); }
@@ -27,65 +26,12 @@ const void Bootloader::write_app_info() {
                         m_app_info.raw, FLASH_PAGE_SIZE);
     restore_interrupts(saved_interrupts);
 }
-auto Bootloader::verify_app_hash() -> bool {
-    return verify_hash(m_app_info.content.app_hash, ADDR_AS_U32(__APP_ADDRESS),
-                       ADDR_AS_U32(__APP_SIZE_ADDRESS));
-}
-auto Bootloader::verify_swap_app_hash() -> bool {
-    return verify_hash(m_app_info.content.swap_app_hash,
-                       ADDR_AS_U32(__SWAP_APP_ADDRESS),
-                       ADDR_AS_U32(__SWAP_APP_SIZE_ADDRESS));
-}
-auto Bootloader::verify_hash(
-    const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
-    const uint32_t app_address, const uint32_t app_size_address) -> bool {
-    mbedtls_sha256_context sha256_ctx;
-    mbedtls_sha256_init(&sha256_ctx);
-
-    int ret;
-    ret = mbedtls_sha256_starts_ret(&sha256_ctx, 0);
-    if (ret) {
-        return false;
-    }
-
-    auto image_size = (size_t) * ((std::uint32_t *)app_size_address);
-    ret = mbedtls_sha256_update_ret(
-        &sha256_ctx, (const unsigned char *)app_address, image_size);
-    if (ret) {
-        return false;
-    }
-
-    unsigned char calculated_sha256[SHA256_DIGEST_SIZE];
-    ret = mbedtls_sha256_finish_ret(&sha256_ctx, calculated_sha256);
-    if (ret) {
-        return false;
-    }
-
-    mbedtls_sha256_free(&sha256_ctx);
-
-    // Compare calculated and stored hash
-    auto hash_matched{true};
-    for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
-        if (stored_sha256[i] != calculated_sha256[i]) {
-            hash_matched = false;
-
-            puts("Calculated hash:");
-            for (auto c : calculated_sha256) {
-                printf("%x", c);
-            }
-            puts("");
-
-            break;
-        }
-    }
-    return hash_matched;
-}
 
 void Bootloader::start_user_app() {
     typedef void (*funcPtr)();
 
     auto vtor{ADDR_AS_U32(__APP_ADDRESS)};
-    printf("Start app at %#X...", vtor);
+    printf("Start app at %#X...\n", vtor);
 
     uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
     auto app_main = (funcPtr)reset_vector;
