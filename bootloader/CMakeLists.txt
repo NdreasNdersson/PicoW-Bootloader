@@ -10,6 +10,7 @@ target_link_libraries(${NAME}
     pico_stdlib                        # for core pico functionality
     cmsis_core
     pico_mbedtls
+    PICO_BOOTLOADER_LIB
 )
 
 target_link_options(${NAME} PRIVATE
