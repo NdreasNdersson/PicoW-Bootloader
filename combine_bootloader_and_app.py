@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-import hashlib
 import argparse
+import hashlib
 
 # Constants
 BOOTLOADER_SIZE = 0x8000

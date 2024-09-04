@@ -5,12 +5,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Blink
 set(NAME ${NAME}_EXAMPLE_APP)
 add_executable(${NAME}
-    src/picow_blink.c
+    src/hello_world.c
 )
 
 target_link_libraries(${NAME}
     pico_stdlib              # for core functionality
-    pico_cyw43_arch_none     # we need Wifi to access the GPIO, but we don't need anything else
 )
 
 target_link_options(${NAME} PRIVATE
