@@ -1,13 +1,17 @@
 #include "bootloader_lib.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
 #include "hardware/flash.h"
 #include "hardware/sync.h"
+#include "hardware/watchdog.h"
 #include "linker_definitions.h"
 #include "mbedtls/sha256.h"
 #include "pico/flash.h"
+
+constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 SoftwareDownload::SoftwareDownload() : m_app_info{}, m_pages_flashed{} {
     read_app_info();
@@ -56,7 +60,11 @@ void SoftwareDownload::download_complete() {
     m_app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
     write_app_info();
 
-    if (!verify_swap_app_hash()) {
+    if (verify_swap_app_hash()) {
+        printf("Swap app hash verification successful, will reboot in 1s...");
+        uint32_t reboot_delay_ms{1000};
+        reboot(reboot_delay_ms);
+    } else {
         printf("Swap app hash verification failed");
     }
 }
@@ -71,6 +79,13 @@ auto SoftwareDownload::verify_swap_app_hash() -> bool {
     return verify_hash(m_app_info.content.swap_app_hash,
                        ADDR_AS_U32(__SWAP_APP_ADDRESS),
                        ADDR_AS_U32(__SWAP_APP_SIZE_ADDRESS));
+}
+
+void SoftwareDownload::reboot(uint32_t delay) {
+    if (delay > MAX_REBOOT_DELAY) {
+        delay = MAX_REBOOT_DELAY;
+    }
+    watchdog_enable(delay, true);
 }
 
 auto SoftwareDownload::verify_hash(
