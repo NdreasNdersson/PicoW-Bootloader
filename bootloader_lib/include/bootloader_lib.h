@@ -33,6 +33,7 @@ class SoftwareDownload {
     void download_complete();
     auto verify_app_hash() -> bool;
     auto verify_swap_app_hash() -> bool;
+    void reboot(uint32_t delay);
 
    private:
     static auto verify_hash(

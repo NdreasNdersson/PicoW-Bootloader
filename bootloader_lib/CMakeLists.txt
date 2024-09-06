@@ -13,4 +13,5 @@ target_link_libraries(${NAME}
     pico_stdlib                        # for core pico functionality
     pico_mbedtls
     hardware_exception
+    hardware_watchdog
 )
