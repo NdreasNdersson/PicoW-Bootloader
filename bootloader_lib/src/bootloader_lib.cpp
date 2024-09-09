@@ -131,7 +131,7 @@ void SoftwareDownload::read_app_info() {
                 FLASH_PAGE_SIZE);
 }
 
-const void SoftwareDownload::write_app_info() {
+void SoftwareDownload::write_app_info() {
     auto status{flash_safe_execute(&erase_and_program_app_info,
                                    static_cast<void *>(&m_app_info.raw), 100U)};
     if (PICO_OK != status) {

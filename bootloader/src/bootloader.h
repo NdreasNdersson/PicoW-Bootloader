@@ -19,7 +19,7 @@ class Bootloader {
 
    private:
     void read_app_info();
-    const void write_app_info();
+    void write_app_info();
 
     app_info_t m_app_info;
 };

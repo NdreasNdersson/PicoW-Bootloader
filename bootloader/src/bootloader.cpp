@@ -18,7 +18,7 @@ void Bootloader::read_app_info() {
            FLASH_PAGE_SIZE);
 }
 
-const void Bootloader::write_app_info() {
+void Bootloader::write_app_info() {
     uint32_t saved_interrupts = save_and_disable_interrupts();
     flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(__APP_INFO_ADDRESS),
                       FLASH_SECTOR_SIZE);

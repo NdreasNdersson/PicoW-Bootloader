@@ -40,7 +40,7 @@ class SoftwareDownload {
         const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
         const uint32_t app_address, const uint32_t app_size_address) -> bool;
     void read_app_info();
-    const void write_app_info();
+    void write_app_info();
     static void erase_and_program_app_info(void *data);
     static void program(void *data);
     static void erase_swap(void *data);
