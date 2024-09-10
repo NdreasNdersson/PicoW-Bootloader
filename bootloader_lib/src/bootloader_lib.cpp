@@ -27,7 +27,7 @@ void SoftwareDownload::init_download(const uint32_t &size) {
     m_pages_flashed = 0;
     auto status{flash_safe_execute(&erase_swap, nullptr, 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
     }
 }
@@ -39,7 +39,7 @@ void SoftwareDownload::set_hash(
 
 auto SoftwareDownload::write_app(
     const unsigned char binary_block[FLASH_PAGE_SIZE]) -> bool {
-    if ((m_pages_flashed * FLASH_PAGE_SIZE) > ADDR_AS_U32(__APP_LENGTH)) {
+    if ((m_pages_flashed * FLASH_PAGE_SIZE) > ADDR_AS_U32(APP_LENGTH)) {
         return false;
     }
 
@@ -48,7 +48,7 @@ auto SoftwareDownload::write_app(
     data.pages_flashed = m_pages_flashed;
     auto status{flash_safe_execute(&program, static_cast<void *>(&data), 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
         return false;
     }
@@ -71,14 +71,14 @@ void SoftwareDownload::download_complete() {
 
 auto SoftwareDownload::verify_app_hash() -> bool {
     read_app_info();
-    return verify_hash(m_app_info.content.app_hash, ADDR_AS_U32(__APP_ADDRESS),
-                       ADDR_AS_U32(__APP_SIZE_ADDRESS));
+    return verify_hash(m_app_info.content.app_hash, ADDR_AS_U32(APP_ADDRESS),
+                       ADDR_AS_U32(APP_SIZE_ADDRESS));
 }
 auto SoftwareDownload::verify_swap_app_hash() -> bool {
     read_app_info();
     return verify_hash(m_app_info.content.swap_app_hash,
-                       ADDR_AS_U32(__SWAP_APP_ADDRESS),
-                       ADDR_AS_U32(__SWAP_APP_SIZE_ADDRESS));
+                       ADDR_AS_U32(SWAP_APP_ADDRESS),
+                       ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS));
 }
 
 void SoftwareDownload::reboot(uint32_t delay) {
@@ -127,37 +127,37 @@ auto SoftwareDownload::verify_hash(
 }
 void SoftwareDownload::read_app_info() {
     std::memcpy(m_app_info.raw,
-                reinterpret_cast<void *>(ADDR_AS_U32(__APP_INFO_ADDRESS)),
+                reinterpret_cast<void *>(ADDR_AS_U32(APP_INFO_ADDRESS)),
                 FLASH_PAGE_SIZE);
 }
 
-const void SoftwareDownload::write_app_info() {
+void SoftwareDownload::write_app_info() {
     auto status{flash_safe_execute(&erase_and_program_app_info,
                                    static_cast<void *>(&m_app_info.raw), 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
     }
 }
 
 void SoftwareDownload::erase_and_program_app_info(void *data) {
-    flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(__APP_INFO_ADDRESS),
+    flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                       FLASH_SECTOR_SIZE);
-    flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(__APP_INFO_ADDRESS),
+    flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                         static_cast<uint8_t *>(data), FLASH_PAGE_SIZE);
 }
 
 void SoftwareDownload::program(void *data) {
     auto flash_data{static_cast<flash_data_t *>(data)};
-    flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(__SWAP_APP_ADDRESS) +
+    flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                             flash_data->pages_flashed * FLASH_PAGE_SIZE,
                         flash_data->binary_block, FLASH_PAGE_SIZE);
 }
 
-void SoftwareDownload::erase_swap(void *data) {
-    const auto sectors_to_erase{ADDR_AS_U32(__APP_LENGTH) / FLASH_SECTOR_SIZE};
-    for (uint16_t i{0}; i < sectors_to_erase; i++) {
-        flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(__SWAP_APP_ADDRESS) +
+void SoftwareDownload::erase_swap(void * /*data*/) {
+    const auto sectors_to_erase{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
+    for (size_t i{0}; i < sectors_to_erase; i++) {
+        flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                               i * FLASH_SECTOR_SIZE,
                           FLASH_SECTOR_SIZE);
     }

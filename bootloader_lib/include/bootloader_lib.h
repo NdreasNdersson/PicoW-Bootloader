@@ -1,5 +1,5 @@
-#ifndef PICOW_BOOTLOADER_BOOTLOADER_LIB_H
-#define PICOW_BOOTLOADER_BOOTLOADER_LIB_H
+#ifndef PICO_BOOTLOADER_BOOTLOADER_LIB_H
+#define PICO_BOOTLOADER_BOOTLOADER_LIB_H
 
 #include <cstdint>
 
@@ -40,7 +40,7 @@ class SoftwareDownload {
         const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
         const uint32_t app_address, const uint32_t app_size_address) -> bool;
     void read_app_info();
-    const void write_app_info();
+    void write_app_info();
     static void erase_and_program_app_info(void *data);
     static void program(void *data);
     static void erase_swap(void *data);
@@ -50,7 +50,7 @@ class SoftwareDownload {
 
     using flash_data_t = struct flash_data_t_ {
         const unsigned char *binary_block;
-        uint8_t pages_flashed;
+        uint32_t pages_flashed;
     };
 };
 
