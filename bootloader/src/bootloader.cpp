@@ -49,7 +49,7 @@ void Bootloader::swap_app_images() {
     printf("Swap %u sectors\n", SECTORS_TO_SWAP);
 
     uint32_t saved_interrupts = save_and_disable_interrupts();
-    for (uint16_t i{0}; i < SECTORS_TO_SWAP; i++) {
+    for (size_t i{0}; i < SECTORS_TO_SWAP; i++) {
         memcpy(swap_buffer_app,
                reinterpret_cast<void *>(ADDR_AS_U32(APP_ADDRESS) +
                                         i * FLASH_SECTOR_SIZE),

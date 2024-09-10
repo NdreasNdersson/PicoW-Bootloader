@@ -27,7 +27,7 @@ void SoftwareDownload::init_download(const uint32_t &size) {
     m_pages_flashed = 0;
     auto status{flash_safe_execute(&erase_swap, nullptr, 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
     }
 }
@@ -48,7 +48,7 @@ auto SoftwareDownload::write_app(
     data.pages_flashed = m_pages_flashed;
     auto status{flash_safe_execute(&program, static_cast<void *>(&data), 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
         return false;
     }
@@ -135,7 +135,7 @@ void SoftwareDownload::write_app_info() {
     auto status{flash_safe_execute(&erase_and_program_app_info,
                                    static_cast<void *>(&m_app_info.raw), 100U)};
     if (PICO_OK != status) {
-        printf("Bootloader lib flash safe execute failed with code: %u!",
+        printf("Bootloader lib flash safe execute failed with code: %d!",
                status);
     }
 }
@@ -156,7 +156,7 @@ void SoftwareDownload::program(void *data) {
 
 void SoftwareDownload::erase_swap(void * /*data*/) {
     const auto sectors_to_erase{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
-    for (uint16_t i{0}; i < sectors_to_erase; i++) {
+    for (size_t i{0}; i < sectors_to_erase; i++) {
         flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                               i * FLASH_SECTOR_SIZE,
                           FLASH_SECTOR_SIZE);
