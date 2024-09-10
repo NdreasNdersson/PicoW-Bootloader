@@ -154,7 +154,7 @@ void SoftwareDownload::program(void *data) {
                         flash_data->binary_block, FLASH_PAGE_SIZE);
 }
 
-void SoftwareDownload::erase_swap(void *data) {
+void SoftwareDownload::erase_swap(void * /*data*/) {
     const auto sectors_to_erase{ADDR_AS_U32(__APP_LENGTH) / FLASH_SECTOR_SIZE};
     for (uint16_t i{0}; i < sectors_to_erase; i++) {
         flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(__SWAP_APP_ADDRESS) +

@@ -50,7 +50,7 @@ class SoftwareDownload {
 
     using flash_data_t = struct flash_data_t_ {
         const unsigned char *binary_block;
-        uint8_t pages_flashed;
+        uint32_t pages_flashed;
     };
 };
 
