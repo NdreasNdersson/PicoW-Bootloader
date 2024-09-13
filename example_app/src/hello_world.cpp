@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 
 #include "common_definitions.h"
 #include "pico/stdlib.h"
