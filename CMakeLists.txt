@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # initialize pico-sdk from submodule
 # note: this must happen before project()
-include(${CMAKE_SOURCE_DIR}/external/pico-sdk/pico_sdk_init.cmake)
+include(pico_sdk_import.cmake)
 
 project(${NAME})
 set(CMAKE_C_STANDARD 11)
