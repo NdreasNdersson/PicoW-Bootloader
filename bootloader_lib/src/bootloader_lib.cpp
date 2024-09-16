@@ -126,9 +126,7 @@ auto SoftwareDownload::verify_hash(
     return hash_matched;
 }
 void SoftwareDownload::read_app_info() {
-    std::memcpy(m_app_info.raw,
-                reinterpret_cast<void *>(ADDR_AS_U32(APP_INFO_ADDRESS)),
-                FLASH_PAGE_SIZE);
+    std::memcpy(m_app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
 
 void SoftwareDownload::write_app_info() {
