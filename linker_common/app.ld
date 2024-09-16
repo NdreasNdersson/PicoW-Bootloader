@@ -37,6 +37,9 @@ ENTRY(_entry_point)
 
 SECTIONS
 {
+    .app_info : {} > FLASH_APP_INFO
+    .app_storage : {} > FLASH_APP_STORAGE
+
     .flash_begin : {
         __flash_binary_start = .;
     } > FLASH
