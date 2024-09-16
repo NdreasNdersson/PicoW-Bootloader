@@ -2,6 +2,7 @@
 
 import argparse
 import hashlib
+from pathlib import Path
 
 # Constants
 BOOTLOADER_SIZE = 0x8000
@@ -113,6 +114,18 @@ def main():
 
     with open(args.app_file, "rb") as file:
         app_raw_file = file.read()
+
+    if all(app_raw_file[i] == 0x0 for i in range(APP_STORAGE_SIZE)):
+        p = Path(args.app_file)
+        stripped_app_file = "{0}_{2}{1}".format(
+            Path.joinpath(p.parent, p.stem), p.suffix, "STRIPPED"
+        )
+        print(
+            f"Strip storage from app binary and save as: {stripped_app_file}"
+        )
+        app_raw_file = app_raw_file[APP_STORAGE_SIZE:]
+        with open(stripped_app_file, "wb") as file:
+            file.write(app_raw_file)
 
     with open(COMBINED_FILE, "wb") as file:
         storage_padding = bytes([0xFF for _ in range(APP_STORAGE_SIZE)])
