@@ -28,7 +28,6 @@ MEMORY
     FLASH_APP_INFO(rx) : ORIGIN = APP_INFO_ADDRESS, LENGTH = APP_INFO_LENGTH
     FLASH_APP_STORAGE(rx) : ORIGIN = APP_STORAGE_ADDRESS, LENGTH = APP_STORAGE_LENGTH
     FLASH(rx) : ORIGIN = APP_ADDRESS, LENGTH = APP_LENGTH
-    FLASH_SWAP_APP(rx) : ORIGIN = SWAP_APP_ADDRESS, LENGTH = APP_LENGTH
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
@@ -47,11 +46,6 @@ SECTIONS
     {
         KEEP(*(.app_storage))
     } > FLASH_APP_STORAGE
-
-    .swap_app_storage SWAP_APP_ADDRESS :
-    {
-        KEEP(*(.swap_app_storage))
-    } > FLASH_SWAP_APP
 
     .flash_begin : {
         __flash_binary_start = .;
