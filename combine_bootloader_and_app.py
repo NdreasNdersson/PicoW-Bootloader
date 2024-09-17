@@ -2,6 +2,7 @@
 
 import argparse
 import hashlib
+from pathlib import Path
 
 # Constants
 BOOTLOADER_SIZE = 0x8000
@@ -107,12 +108,37 @@ def main():
     bootloader_padding = bytes(
         [0xFF for _ in range(BOOTLOADER_SIZE - len(bootloader_raw_file))]
     )
+    if len(bootloader_padding) == 0:
+        print(
+            "No bootloader padding, make sure bootloader bin is no longer"
+            " than max size"
+        )
+        bootloader_raw_file = bootloader_raw_file[:BOOTLOADER_SIZE]
 
     print(f"Add {len(bootloader_raw_file)} bytes bootloader")
     print(f"Add {len(bootloader_padding)} bytes bootloader padding")
 
     with open(args.app_file, "rb") as file:
         app_raw_file = file.read()
+
+    p = Path(args.app_file)
+    stripped_app_file = "{0}_{2}{1}".format(
+        Path.joinpath(p.parent, p.stem), p.suffix, "STRIPPED"
+    )
+    print(
+        "Strip app info and storage from app binary and save as:"
+        f" {stripped_app_file}"
+    )
+    if all(app_raw_file[i] == 0x0 for i in range(APP_INFO_SIZE)):
+        print("Strip app info")
+        app_raw_file = app_raw_file[APP_INFO_SIZE:]
+
+    if all(app_raw_file[i] == 0x0 for i in range(APP_STORAGE_SIZE)):
+        print("Strip storage")
+        app_raw_file = app_raw_file[APP_STORAGE_SIZE:]
+
+    with open(stripped_app_file, "wb") as file:
+        file.write(app_raw_file)
 
     with open(COMBINED_FILE, "wb") as file:
         storage_padding = bytes([0xFF for _ in range(APP_STORAGE_SIZE)])

@@ -6,25 +6,20 @@
 
 #include "RP2040.h"
 #include "hardware/flash.h"
-#include "hardware/sync.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
 
 Bootloader::Bootloader() { read_app_info(); }
 
 void Bootloader::read_app_info() {
-    memcpy(m_app_info.raw,
-           reinterpret_cast<void *>(ADDR_AS_U32(APP_INFO_ADDRESS)),
-           FLASH_PAGE_SIZE);
+    memcpy(m_app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
 
 void Bootloader::write_app_info() {
-    uint32_t saved_interrupts = save_and_disable_interrupts();
     flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                       FLASH_SECTOR_SIZE);
     flash_range_program(ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                         m_app_info.raw, FLASH_PAGE_SIZE);
-    restore_interrupts(saved_interrupts);
 }
 
 void Bootloader::start_user_app() {
@@ -48,7 +43,6 @@ void Bootloader::swap_app_images() {
 
     printf("Swap %u sectors\n", SECTORS_TO_SWAP);
 
-    uint32_t saved_interrupts = save_and_disable_interrupts();
     for (size_t i{0}; i < SECTORS_TO_SWAP; i++) {
         memcpy(swap_buffer_app,
                reinterpret_cast<void *>(ADDR_AS_U32(APP_ADDRESS) +
@@ -71,7 +65,6 @@ void Bootloader::swap_app_images() {
                                 i * FLASH_SECTOR_SIZE,
                             swap_buffer_app, FLASH_SECTOR_SIZE);
     }
-    restore_interrupts(saved_interrupts);
 
     // Update app info
     unsigned char temp_hash[SHA256_DIGEST_SIZE];

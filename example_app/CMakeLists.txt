@@ -5,7 +5,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Blink
 set(NAME ${NAME}_EXAMPLE_APP)
 add_executable(${NAME}
-    src/hello_world.c
+    src/hello_world.cpp
 )
 
 target_link_libraries(${NAME}
@@ -24,7 +24,7 @@ pico_set_linker_script(${NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../linker_common/app.
 # Blink fast
 set(NAME ${NAME}_2)
 add_executable(${NAME}
-    src/picow_blink_fast.c
+    src/picow_blink_fast.cpp
 )
 
 target_link_libraries(${NAME}

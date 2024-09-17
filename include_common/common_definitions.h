@@ -1,7 +1,7 @@
 #ifndef PICO_BOOTLOADER_COMMON_DEFINITIONS_H
 #define PICO_BOOTLOADER_COMMON_DEFINITIONS_H
 
-#include <stdint.h>
+#include <cstdint>
 
 #define PICO_UART uart0
 #define PICO_UART_BAUD_RATE PICO_DEFAULT_UART_BAUD_RATE

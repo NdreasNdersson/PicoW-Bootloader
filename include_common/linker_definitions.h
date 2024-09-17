@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "hardware/regs/addressmap.h"
+#include "pico/flash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,11 @@ extern uint32_t APP_SIZE_ADDRESS;
 extern uint32_t SWAP_APP_SIZE_ADDRESS;
 extern uint32_t APP_DOWNLOADED_FLAG_ADDRESS;
 extern uint32_t APP_BACKED_UP_FLAG_ADDRESS;
+
+inline uint8_t __attribute__((section(".app_info")))
+g_app_info[FLASH_SECTOR_SIZE];
+inline uint8_t __attribute__((section(".app_storage")))
+g_app_storage[FLASH_SECTOR_SIZE];
 
 #ifdef __cplusplus
 }

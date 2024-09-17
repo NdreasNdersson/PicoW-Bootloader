@@ -3,15 +3,15 @@ cmake_minimum_required(VERSION 3.13...3.27)
 set(NAME PICO_BOOTLOADER)
 set(PICO_BOARD pico_w) # Set the board used
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# initialize pico-sdk from submodule
-# note: this must happen before project()
-include(${CMAKE_SOURCE_DIR}/external/pico-sdk/pico_sdk_init.cmake)
-
-project(${NAME})
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# initialize pico-sdk from submodule
+# note: this must happen before project()
+include(pico_sdk_import.cmake)
+
+project(${NAME})
 
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()

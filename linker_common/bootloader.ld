@@ -26,6 +26,7 @@ INCLUDE linker_definitions.ld
 MEMORY
 {
     FLASH(rx) : ORIGIN = FLASH_START, LENGTH = BOOTLOADER_LENGTH
+    FLASH_APP_INFO(rx) : ORIGIN = APP_INFO_ADDRESS, LENGTH = APP_INFO_LENGTH
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
     SCRATCH_Y(rwx) : ORIGIN = 0x20041000, LENGTH = 4k
@@ -43,6 +44,11 @@ SECTIONS
     .flash_begin : {
         __flash_binary_start = .;
     } > FLASH
+
+    .app_info APP_INFO_ADDRESS :
+    {
+        KEEP(*(.app_info))
+    } > FLASH_APP_INFO
 
     .boot2 : {
         __boot2_start__ = .;

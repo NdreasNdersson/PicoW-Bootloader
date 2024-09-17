@@ -26,7 +26,7 @@ INCLUDE linker_definitions.ld
 MEMORY
 {
     FLASH_APP_INFO(rx) : ORIGIN = APP_INFO_ADDRESS, LENGTH = APP_INFO_LENGTH
-    FLASH_APP_STORAG(rx) : ORIGIN = APP_STORAGE_ADDRESS, LENGTH = APP_STORAGE_LENGTH
+    FLASH_APP_STORAGE(rx) : ORIGIN = APP_STORAGE_ADDRESS, LENGTH = APP_STORAGE_LENGTH
     FLASH(rx) : ORIGIN = APP_ADDRESS, LENGTH = APP_LENGTH
     RAM(rwx) : ORIGIN =  0x20000000, LENGTH = 256k
     SCRATCH_X(rwx) : ORIGIN = 0x20040000, LENGTH = 4k
@@ -37,6 +37,16 @@ ENTRY(_entry_point)
 
 SECTIONS
 {
+    .app_info APP_INFO_ADDRESS :
+    {
+        KEEP(*(.app_info))
+    } > FLASH_APP_INFO
+
+    .app_storage APP_STORAGE_ADDRESS :
+    {
+        KEEP(*(.app_storage))
+    } > FLASH_APP_STORAGE
+
     .flash_begin : {
         __flash_binary_start = .;
     } > FLASH
