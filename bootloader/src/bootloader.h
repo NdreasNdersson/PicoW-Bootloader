@@ -11,10 +11,8 @@ class Bootloader {
     Bootloader();
 
     static void start_user_app();
-    static auto check_download_app_flag() -> bool {
-        return TRUE_MAGIC_NUMBER ==
-               (*((std::uint32_t *)ADDR_AS_U32(APP_DOWNLOADED_FLAG_ADDRESS)));
-    }
+    auto check_download_app_flag() const -> bool;
+    auto check_restore_at_boot() const -> bool;
     void swap_app_images();
 
    private:

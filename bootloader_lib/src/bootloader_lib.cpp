@@ -88,6 +88,22 @@ void SoftwareDownload::reboot(uint32_t delay) {
     watchdog_enable(delay, true);
 }
 
+auto SoftwareDownload::restore(uint32_t delay) -> bool {
+    read_app_info();
+    if (m_app_info.content.app_backed_up != TRUE_MAGIC_NUMBER) {
+        return false;
+    }
+
+    m_app_info.content.app_restore_at_boot = TRUE_MAGIC_NUMBER;
+
+    if (delay > MAX_REBOOT_DELAY) {
+        delay = MAX_REBOOT_DELAY;
+    }
+    watchdog_enable(delay, true);
+
+    return true;
+}
+
 auto SoftwareDownload::verify_hash(
     const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
     const uint32_t app_address, const uint32_t app_size_address) -> bool {

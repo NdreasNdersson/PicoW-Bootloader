@@ -39,6 +39,16 @@ auto main() -> int {
         }
     }
 
+    if (bootloader.check_restore_at_boot()) {
+        puts("Restore was requested before power off!");
+        if (software_download.verify_swap_app_hash()) {
+            puts("Backed up hash was verified, swap images!");
+            bootloader.swap_app_images();
+        } else {
+            puts("Backed up app hash verification FAILED!");
+        }
+    }
+
     if (software_download.verify_app_hash()) {
         bootloader.start_user_app();
     }

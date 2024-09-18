@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "RP2040.h"
+#include "bootloader_lib.h"
 #include "hardware/flash.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
@@ -33,6 +34,19 @@ void Bootloader::start_user_app() {
 
     SCB->VTOR = (volatile uint32_t)(vtor);
     app_main();
+}
+
+auto Bootloader::check_download_app_flag() const -> bool {
+    return TRUE_MAGIC_NUMBER == m_app_info.content.app_downloaded;
+}
+
+auto Bootloader::check_restore_at_boot() const -> bool {
+    if ((m_app_info.content.app_backed_up == TRUE_MAGIC_NUMBER) &&
+        (m_app_info.content.app_restore_at_boot == TRUE_MAGIC_NUMBER)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void Bootloader::swap_app_images() {
