@@ -95,6 +95,7 @@ auto SoftwareDownload::restore(uint32_t delay) -> bool {
     }
 
     m_app_info.content.app_restore_at_boot = TRUE_MAGIC_NUMBER;
+    write_app_info();
 
     if (delay > MAX_REBOOT_DELAY) {
         delay = MAX_REBOOT_DELAY;

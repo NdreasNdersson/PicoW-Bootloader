@@ -86,10 +86,12 @@ void Bootloader::swap_app_images() {
     memcpy(m_app_info.content.app_hash, m_app_info.content.swap_app_hash,
            SHA256_DIGEST_SIZE);
     memcpy(m_app_info.content.swap_app_hash, temp_hash, SHA256_DIGEST_SIZE);
+    auto temp_size{m_app_info.content.app_size};
     m_app_info.content.app_size = m_app_info.content.swap_app_size;
-    m_app_info.content.swap_app_size = m_app_info.content.app_size;
+    m_app_info.content.swap_app_size = temp_size;
     m_app_info.content.app_backed_up = TRUE_MAGIC_NUMBER;
     m_app_info.content.app_downloaded = FALSE_NUMBER;
+    m_app_info.content.app_restore_at_boot = FALSE_NUMBER;
 
     write_app_info();
 }
