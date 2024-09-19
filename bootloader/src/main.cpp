@@ -28,10 +28,9 @@ auto main() -> int {
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
     auto bootloader = Bootloader();
-    auto software_download = SoftwareDownload();
     if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
-        if (software_download.verify_swap_app_hash()) {
+        if (bootloader.verify_swap_app_hash()) {
             puts("New app hash was verified, swap images!");
             bootloader.swap_app_images();
         } else {
@@ -41,7 +40,7 @@ auto main() -> int {
 
     if (bootloader.check_restore_at_boot()) {
         puts("Restore was requested before power off!");
-        if (software_download.verify_swap_app_hash()) {
+        if (bootloader.verify_swap_app_hash()) {
             puts("Backed up hash was verified, swap images!");
             bootloader.swap_app_images();
         } else {
@@ -49,7 +48,7 @@ auto main() -> int {
         }
     }
 
-    if (software_download.verify_app_hash()) {
+    if (bootloader.verify_app_hash()) {
         bootloader.start_user_app();
     }
     puts("Hash verification failed");

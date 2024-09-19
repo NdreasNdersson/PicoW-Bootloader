@@ -37,6 +37,11 @@ class SoftwareDownload {
     void reboot(uint32_t delay);
     auto restore(uint32_t delay) -> bool;
 
+   protected:
+    auto check_download_app_flag() const -> bool;
+    auto check_restore_at_boot() const -> bool;
+    void swap_app_images();
+
    private:
     static auto verify_hash(
         const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
