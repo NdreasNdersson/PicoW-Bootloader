@@ -18,6 +18,7 @@ union app_info_t {
         uint32_t swap_app_size;
         uint32_t app_downloaded;
         uint32_t app_backed_up;
+        uint32_t app_restore_at_boot;
     };
     struct content_t content;
     uint8_t raw[FLASH_PAGE_SIZE];
@@ -34,6 +35,12 @@ class SoftwareDownload {
     auto verify_app_hash() -> bool;
     auto verify_swap_app_hash() -> bool;
     void reboot(uint32_t delay);
+    auto restore(uint32_t delay) -> bool;
+
+   protected:
+    auto check_download_app_flag() const -> bool;
+    auto check_restore_at_boot() const -> bool;
+    void swap_app_images();
 
    private:
     static auto verify_hash(
