@@ -7,18 +7,27 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# initialize pico-sdk from submodule
-# note: this must happen before project()
-include(pico_sdk_import.cmake)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+else ()
+    # initialize pico-sdk from submodule
+    # note: this must happen before project()
+    include(pico_sdk_import.cmake)
+endif()
 
 project(${NAME})
 
-# initialize the Raspberry Pi Pico SDK
-pico_sdk_init()
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-include_directories(linker_common)
-include_directories(include_common)
+    include(unittests.cmake)
 
-add_subdirectory(bootloader)
-add_subdirectory(bootloader_lib)
-add_subdirectory(example_app)
+else ()
+    # initialize the Raspberry Pi Pico SDK
+    pico_sdk_init()
+
+    include_directories(linker_common)
+    include_directories(include_common)
+
+    add_subdirectory(bootloader)
+    add_subdirectory(bootloader_lib)
+    add_subdirectory(example_app)
+endif()
