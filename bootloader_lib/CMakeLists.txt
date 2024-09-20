@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13...3.27)
 
 set(NAME ${NAME}_LIB)
 add_library(${NAME}
-    src/bootloader_lib.cpp
+    src/software_download.cpp
 )
 target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

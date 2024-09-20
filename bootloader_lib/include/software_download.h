@@ -3,12 +3,11 @@
 
 #include <cstdint>
 
+#include "bootloader_lib.h"
 #include "hardware/flash.h"
 
-constexpr uint8_t SHA256_DIGEST_SIZE{32U};
 constexpr uint32_t TRUE_MAGIC_NUMBER{14253U};
 constexpr uint32_t FALSE_NUMBER{0U};
-constexpr unsigned int DOWNLOAD_BLOCK_SIZE{FLASH_PAGE_SIZE};
 
 union app_info_t {
     struct content_t {
@@ -24,23 +23,24 @@ union app_info_t {
     uint8_t raw[FLASH_PAGE_SIZE];
 };
 
-class SoftwareDownload {
+class SoftwareDownload : public BootloaderLib {
    public:
     SoftwareDownload();
 
-    void init_download(const uint32_t &size);
-    void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]);
-    auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE]) -> bool;
-    void download_complete();
-    auto verify_app_hash() -> bool;
-    auto verify_swap_app_hash() -> bool;
-    void reboot(uint32_t delay);
-    auto restore(uint32_t delay) -> bool;
+    void init_download(const uint32_t &size) override;
+    void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) override;
+    auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
+        -> bool override;
+    void download_complete() override;
+    auto verify_app_hash() -> bool override;
+    auto verify_swap_app_hash() -> bool override;
+    void reboot(uint32_t delay) override;
+    auto restore(uint32_t delay) -> bool override;
 
    protected:
-    auto check_download_app_flag() const -> bool;
-    auto check_restore_at_boot() const -> bool;
-    void swap_app_images();
+    auto check_download_app_flag() const -> bool override;
+    auto check_restore_at_boot() const -> bool override;
+    void swap_app_images() override;
 
    private:
     static auto verify_hash(

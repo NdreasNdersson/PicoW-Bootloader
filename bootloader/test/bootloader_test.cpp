@@ -1,6 +1,9 @@
 #include "bootloader.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include "mock_bootloader_lib.h"
 
 class BootloaderTest : public testing::Test {
    protected:
@@ -33,16 +36,61 @@ class BootloaderTest : public testing::Test {
 };
 
 TEST_F(BootloaderTest, CheckDownloadAppFlag) {
-    Bootloader uut;
+    MockBootloaderLib mock_bootloader_lib{};
+    Bootloader uut{mock_bootloader_lib};
+
+    EXPECT_CALL(mock_bootloader_lib, check_download_app_flag())
+        .WillOnce(testing::Return(true));
     EXPECT_EQ(uut.check_download_app_flag(), true);
+
+    EXPECT_CALL(mock_bootloader_lib, check_download_app_flag())
+        .WillOnce(testing::Return(false));
+    EXPECT_EQ(uut.check_download_app_flag(), false);
 }
 
 TEST_F(BootloaderTest, CheckRestoreAtBoot) {
-    Bootloader uut;
+    MockBootloaderLib mock_bootloader_lib{};
+    Bootloader uut{mock_bootloader_lib};
+
+    EXPECT_CALL(mock_bootloader_lib, check_restore_at_boot())
+        .WillOnce(testing::Return(true));
     EXPECT_EQ(uut.check_restore_at_boot(), true);
+
+    EXPECT_CALL(mock_bootloader_lib, check_restore_at_boot())
+        .WillOnce(testing::Return(false));
+    EXPECT_EQ(uut.check_restore_at_boot(), false);
 }
 
 TEST_F(BootloaderTest, SwapAppImages) {
-    Bootloader uut;
+    MockBootloaderLib mock_bootloader_lib{};
+    Bootloader uut{mock_bootloader_lib};
+
+    EXPECT_CALL(mock_bootloader_lib, swap_app_images());
     uut.swap_app_images();
+}
+
+TEST_F(BootloaderTest, VerifyAppHash) {
+    MockBootloaderLib mock_bootloader_lib{};
+    Bootloader uut{mock_bootloader_lib};
+
+    EXPECT_CALL(mock_bootloader_lib, verify_app_hash())
+        .WillOnce(testing::Return(true));
+    EXPECT_EQ(uut.verify_app_hash(), true);
+
+    EXPECT_CALL(mock_bootloader_lib, verify_app_hash())
+        .WillOnce(testing::Return(false));
+    EXPECT_EQ(uut.verify_app_hash(), false);
+}
+
+TEST_F(BootloaderTest, VerifySwapAppHash) {
+    MockBootloaderLib mock_bootloader_lib{};
+    Bootloader uut{mock_bootloader_lib};
+
+    EXPECT_CALL(mock_bootloader_lib, verify_swap_app_hash())
+        .WillOnce(testing::Return(true));
+    EXPECT_EQ(uut.verify_swap_app_hash(), true);
+
+    EXPECT_CALL(mock_bootloader_lib, verify_swap_app_hash())
+        .WillOnce(testing::Return(false));
+    EXPECT_EQ(uut.verify_swap_app_hash(), false);
 }

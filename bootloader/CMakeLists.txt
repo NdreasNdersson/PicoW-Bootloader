@@ -5,6 +5,7 @@ add_executable(${NAME}
     src/bootloader.cpp
 )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../bootloader_lib/src)
 
 target_link_libraries(${NAME}
     pico_stdlib                        # for core pico functionality

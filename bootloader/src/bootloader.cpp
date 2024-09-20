@@ -1,24 +1,24 @@
 #include "bootloader.h"
 
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-
-#include "RP2040.h"
 #include "bootloader_lib.h"
-#include "hardware/flash.h"
-#include "linker_definitions.h"
-#include "pico/stdlib.h"
 
-void Bootloader::start_user_app() {
-    typedef void (*funcPtr)();
+Bootloader::Bootloader(BootloaderLib &bootloader_lib)
+    : bootloader_lib_{bootloader_lib} {}
 
-    auto vtor{ADDR_AS_U32(APP_ADDRESS)};
-    printf("Start app at %#X...\n", vtor);
+auto Bootloader::check_download_app_flag() -> bool {
+    return bootloader_lib_.check_download_app_flag();
+}
 
-    uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
-    auto app_main = (funcPtr)reset_vector;
+auto Bootloader::check_restore_at_boot() -> bool {
+    return bootloader_lib_.check_restore_at_boot();
+}
 
-    SCB->VTOR = (volatile uint32_t)(vtor);
-    app_main();
+void Bootloader::swap_app_images() { bootloader_lib_.swap_app_images(); }
+
+auto Bootloader::verify_app_hash() -> bool {
+    return bootloader_lib_.verify_app_hash();
+}
+
+auto Bootloader::verify_swap_app_hash() -> bool {
+    return bootloader_lib_.verify_swap_app_hash();
 }

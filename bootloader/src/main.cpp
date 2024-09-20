@@ -1,11 +1,12 @@
 #include <cassert>
 #include <cstdio>
 
+#include "RP2040.h"
 #include "bootloader.h"
-#include "bootloader_lib.h"
 #include "common_definitions.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
+#include "software_download.h"
 
 static void print_welcome_message() {
     puts("");
@@ -15,6 +16,19 @@ static void print_welcome_message() {
     puts("*                                                    *");
     puts("******************************************************");
     puts("");
+}
+
+static void start_user_app() {
+    typedef void (*funcPtr)();
+
+    auto vtor{ADDR_AS_U32(APP_ADDRESS)};
+    printf("Start app at %#X...\n", vtor);
+
+    uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
+    auto app_main = (funcPtr)reset_vector;
+
+    SCB->VTOR = (volatile uint32_t)(vtor);
+    app_main();
 }
 
 auto main() -> int {
@@ -27,7 +41,8 @@ auto main() -> int {
     assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
-    auto bootloader = Bootloader();
+    SoftwareDownload software_download{};
+    Bootloader bootloader{software_download};
     if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
         if (bootloader.verify_swap_app_hash()) {
@@ -49,7 +64,7 @@ auto main() -> int {
     }
 
     if (bootloader.verify_app_hash()) {
-        bootloader.start_user_app();
+        start_user_app();
     }
     puts("Hash verification failed");
     while (true) {
