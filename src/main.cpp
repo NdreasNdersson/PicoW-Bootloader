@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdio>
+#include <memory>
 
 #include "RP2040.h"
 #include "bootloader.h"
@@ -41,29 +42,29 @@ auto main() -> int {
     assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
-    SoftwareDownload software_download{};
-    Bootloader bootloader{software_download};
-    if (bootloader.check_download_app_flag()) {
+    std::unique_ptr<Bootloader> bootloader{
+        std::make_unique<SoftwareDownload>()};
+    if (bootloader->check_download_app_flag()) {
         puts("New app was downloaded!");
-        if (bootloader.verify_swap_app_hash()) {
+        if (bootloader->verify_swap_app_hash()) {
             puts("New app hash was verified, swap images!");
-            bootloader.swap_app_images();
+            bootloader->swap_app_images();
         } else {
             puts("New app hash verification FAILED!");
         }
     }
 
-    if (bootloader.check_restore_at_boot()) {
+    if (bootloader->check_restore_at_boot()) {
         puts("Restore was requested before power off!");
-        if (bootloader.verify_swap_app_hash()) {
+        if (bootloader->verify_swap_app_hash()) {
             puts("Backed up hash was verified, swap images!");
-            bootloader.swap_app_images();
+            bootloader->swap_app_images();
         } else {
             puts("Backed up app hash verification FAILED!");
         }
     }
 
-    if (bootloader.verify_app_hash()) {
+    if (bootloader->verify_app_hash()) {
         start_user_app();
     }
     puts("Hash verification failed");

@@ -1,9 +1,9 @@
-#ifndef PICO_BOOTLOADER_BOOTLOADER_LIB_H
-#define PICO_BOOTLOADER_BOOTLOADER_LIB_H
+#ifndef PICO_BOOTLOADER_SOFTWARE_DOWNLOAD_H_
+#define PICO_BOOTLOADER_SOFTWARE_DOWNLOAD_H_
 
 #include <cstdint>
 
-#include "bootloader_lib.h"
+#include "bootloader.h"
 #include "hardware/flash.h"
 
 constexpr uint32_t TRUE_MAGIC_NUMBER{14253U};
@@ -23,9 +23,10 @@ union app_info_t {
     uint8_t raw[FLASH_PAGE_SIZE];
 };
 
-class SoftwareDownload : public BootloaderLib {
+class SoftwareDownload : public Bootloader {
    public:
     SoftwareDownload();
+    virtual ~SoftwareDownload();
 
     void init_download(const uint32_t &size) override;
     void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) override;
@@ -61,4 +62,4 @@ class SoftwareDownload : public BootloaderLib {
     };
 };
 
-#endif
+#endif  // PICO_BOOTLOADER_SOFTWARE_DOWNLOAD_H_

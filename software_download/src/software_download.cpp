@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "hardware/flash.h"
 #include "hardware/sync.h"
 #include "hardware/watchdog.h"
 #include "linker_definitions.h"
@@ -17,6 +16,7 @@ SoftwareDownload::SoftwareDownload() : m_app_info{}, m_pages_flashed{} {
     read_app_info();
 }
 
+SoftwareDownload::~SoftwareDownload() {}
 void SoftwareDownload::init_download(const uint32_t &size) {
     std::memset(m_app_info.content.swap_app_hash, 0, SHA256_DIGEST_SIZE);
     m_app_info.content.swap_app_size = size;
@@ -202,6 +202,7 @@ auto SoftwareDownload::verify_hash(
     }
     return hash_matched;
 }
+
 void SoftwareDownload::read_app_info() {
     std::memcpy(m_app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
@@ -229,7 +230,7 @@ void SoftwareDownload::program(void *data) {
                         flash_data->binary_block, FLASH_PAGE_SIZE);
 }
 
-void SoftwareDownload::erase_swap(void * /*data*/) {
+void SoftwareDownload::erase_swap(void *) {
     const auto sectors_to_erase{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
     for (size_t i{0}; i < sectors_to_erase; i++) {
         flash_range_erase(ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +

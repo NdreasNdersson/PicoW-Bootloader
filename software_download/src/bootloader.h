@@ -1,5 +1,5 @@
-#ifndef PICO_REST_SENSOR_BOOTLOADER_LIB_H_
-#define PICO_REST_SENSOR_BOOTLOADER_LIB_H_
+#ifndef PICO_BOOTLOADER_BOOTLOADER_H_
+#define PICO_BOOTLOADER_BOOTLOADER_H_
 
 #include <cstdint>
 
@@ -8,8 +8,9 @@
 constexpr uint8_t SHA256_DIGEST_SIZE{32U};
 constexpr unsigned int DOWNLOAD_BLOCK_SIZE{FLASH_PAGE_SIZE};
 
-class BootloaderLib {
+class Bootloader {
    public:
+    virtual ~Bootloader() = default;
     virtual void init_download(const uint32_t &size) = 0;
     virtual void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) = 0;
     virtual auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
@@ -24,4 +25,4 @@ class BootloaderLib {
     virtual void swap_app_images() = 0;
 };
 
-#endif  // PICO_REST_SENSOR_BOOTLOADER_LIB_H_
+#endif  // PICO_BOOTLOADER_BOOTLOADER_H_
