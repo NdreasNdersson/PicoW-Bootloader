@@ -10,16 +10,16 @@
 constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 SoftwareDownload::SoftwareDownload(PicoInterface &pico_interface)
-    : m_app_info{}, m_pages_flashed{}, pico_interface_{pico_interface} {
-    read_app_info();
-}
+    : m_pages_flashed{}, pico_interface_{pico_interface} {}
 
 auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
-    std::memset(m_app_info.content.swap_app_hash, 0, SHA256_DIGEST_SIZE);
-    m_app_info.content.swap_app_size = size;
-    m_app_info.content.app_backed_up = FALSE_NUMBER;
-    m_app_info.content.app_downloaded = FALSE_NUMBER;
-    if (!write_app_info()) {
+    app_info_t app_info{};
+    read_app_info(app_info);
+    std::memset(app_info.content.swap_app_hash, 0, SHA256_DIGEST_SIZE);
+    app_info.content.swap_app_size = size;
+    app_info.content.app_backed_up = FALSE_NUMBER;
+    app_info.content.app_downloaded = FALSE_NUMBER;
+    if (!write_app_info(app_info)) {
         printf("Write app info failed");
         return false;
     }
@@ -44,7 +44,12 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
 
 void SoftwareDownload::set_hash(
     const unsigned char app_hash[SHA256_DIGEST_SIZE]) {
-    std::memcpy(m_app_info.content.swap_app_hash, app_hash, SHA256_DIGEST_SIZE);
+    app_info_t app_info{};
+    read_app_info(app_info);
+    std::memcpy(app_info.content.swap_app_hash, app_hash, SHA256_DIGEST_SIZE);
+    if (!write_app_info(app_info)) {
+        printf("Write app info failed");
+    }
 }
 
 auto SoftwareDownload::write_app(
@@ -67,8 +72,10 @@ auto SoftwareDownload::write_app(
 }
 
 auto SoftwareDownload::download_complete() -> bool {
-    m_app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
-    if (!write_app_info()) {
+    app_info_t app_info{};
+    read_app_info(app_info);
+    app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
+    if (!write_app_info(app_info)) {
         printf("Write app info failed");
         return false;
     }
@@ -87,14 +94,16 @@ auto SoftwareDownload::download_complete() -> bool {
 }
 
 auto SoftwareDownload::verify_app_hash() -> bool {
-    read_app_info();
-    return pico_interface_.verify_hash(m_app_info.content.app_hash,
+    app_info_t app_info{};
+    read_app_info(app_info);
+    return pico_interface_.verify_hash(app_info.content.app_hash,
                                        ADDR_AS_U32(APP_ADDRESS),
                                        ADDR_AS_U32(APP_SIZE_ADDRESS));
 }
 auto SoftwareDownload::verify_swap_app_hash() -> bool {
-    read_app_info();
-    return pico_interface_.verify_hash(m_app_info.content.swap_app_hash,
+    app_info_t app_info{};
+    read_app_info(app_info);
+    return pico_interface_.verify_hash(app_info.content.swap_app_hash,
                                        ADDR_AS_U32(SWAP_APP_ADDRESS),
                                        ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS));
 }
@@ -107,13 +116,14 @@ void SoftwareDownload::reboot(uint32_t delay) {
 }
 
 auto SoftwareDownload::restore(uint32_t delay) -> bool {
-    read_app_info();
-    if (m_app_info.content.app_backed_up != TRUE_MAGIC_NUMBER) {
+    app_info_t app_info{};
+    read_app_info(app_info);
+    if (app_info.content.app_backed_up != TRUE_MAGIC_NUMBER) {
         return false;
     }
 
-    m_app_info.content.app_restore_at_boot = TRUE_MAGIC_NUMBER;
-    if (!write_app_info()) {
+    app_info.content.app_restore_at_boot = TRUE_MAGIC_NUMBER;
+    if (!write_app_info(app_info)) {
         printf("Write app info failed");
         return false;
     }
@@ -127,12 +137,16 @@ auto SoftwareDownload::restore(uint32_t delay) -> bool {
 }
 
 auto SoftwareDownload::check_download_app_flag() const -> bool {
-    return TRUE_MAGIC_NUMBER == m_app_info.content.app_downloaded;
+    app_info_t app_info{};
+    read_app_info(app_info);
+    return TRUE_MAGIC_NUMBER == app_info.content.app_downloaded;
 }
 
 auto SoftwareDownload::check_restore_at_boot() const -> bool {
-    if ((m_app_info.content.app_backed_up == TRUE_MAGIC_NUMBER) &&
-        (m_app_info.content.app_restore_at_boot == TRUE_MAGIC_NUMBER)) {
+    app_info_t app_info{};
+    read_app_info(app_info);
+    if ((app_info.content.app_backed_up == TRUE_MAGIC_NUMBER) &&
+        (app_info.content.app_restore_at_boot == TRUE_MAGIC_NUMBER)) {
         return true;
     } else {
         return false;
@@ -172,33 +186,37 @@ void SoftwareDownload::swap_app_images() {
             swap_buffer_app, FLASH_SECTOR_SIZE);
     }
 
+    app_info_t app_info{};
+    read_app_info(app_info);
     // Update app info
     {
         unsigned char temp_hash[SHA256_DIGEST_SIZE];
-        memcpy(temp_hash, m_app_info.content.app_hash, SHA256_DIGEST_SIZE);
-        memcpy(m_app_info.content.app_hash, m_app_info.content.swap_app_hash,
+        memcpy(temp_hash, app_info.content.app_hash, SHA256_DIGEST_SIZE);
+        memcpy(app_info.content.app_hash, app_info.content.swap_app_hash,
                SHA256_DIGEST_SIZE);
-        memcpy(m_app_info.content.swap_app_hash, temp_hash, SHA256_DIGEST_SIZE);
+        memcpy(app_info.content.swap_app_hash, temp_hash, SHA256_DIGEST_SIZE);
     }
 
     {
-        auto temp_size{m_app_info.content.app_size};
-        m_app_info.content.app_size = m_app_info.content.swap_app_size;
-        m_app_info.content.swap_app_size = temp_size;
+        auto temp_size{app_info.content.app_size};
+        app_info.content.app_size = app_info.content.swap_app_size;
+        app_info.content.swap_app_size = temp_size;
     }
 
-    m_app_info.content.app_backed_up = TRUE_MAGIC_NUMBER;
-    m_app_info.content.app_downloaded = FALSE_NUMBER;
-    m_app_info.content.app_restore_at_boot = FALSE_NUMBER;
+    app_info.content.app_backed_up = TRUE_MAGIC_NUMBER;
+    app_info.content.app_downloaded = FALSE_NUMBER;
+    app_info.content.app_restore_at_boot = FALSE_NUMBER;
 
-    write_app_info();
+    if (!write_app_info(app_info)) {
+        printf("Write app info failed");
+    }
 }
 
-void SoftwareDownload::read_app_info() {
-    std::memcpy(m_app_info.raw, g_app_info, FLASH_PAGE_SIZE);
+void SoftwareDownload::read_app_info(app_info_t &app_info) {
+    std::memcpy(app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
 
-auto SoftwareDownload::write_app_info() -> bool {
+auto SoftwareDownload::write_app_info(app_info_t &app_info) -> bool {
     if (!pico_interface_.erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS), FLASH_SECTOR_SIZE)) {
         printf("Bootloader lib flash safe execute failed");
@@ -206,7 +224,7 @@ auto SoftwareDownload::write_app_info() -> bool {
     }
     if (!pico_interface_.store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
-            static_cast<uint8_t *>(m_app_info.raw), FLASH_PAGE_SIZE)) {
+            static_cast<uint8_t *>(app_info.raw), FLASH_PAGE_SIZE)) {
         printf("Bootloader lib flash safe execute failed");
         return false;
     }

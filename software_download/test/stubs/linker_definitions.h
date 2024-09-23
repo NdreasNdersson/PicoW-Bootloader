@@ -1,17 +1,11 @@
 #ifndef PICO_BOOTLOADER_LINKER_DEFINITIONS_H
 #define PICO_BOOTLOADER_LINKER_DEFINITIONS_H
 
-#include <cstdint>
-
 #include "hardware/flash.h"
-#include "hardware/regs/addressmap.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "software_download.h"
 
 #define ADDR_AS_U32(Data) (uint32_t) & (Data)
-#define ADDR_WITH_XIP_OFFSET_AS_U32(Data) ADDR_AS_U32(Data) - XIP_BASE
+#define ADDR_WITH_XIP_OFFSET_AS_U32(Data) ADDR_AS_U32(Data)  // - XIP_BASE
 
 extern uint32_t APP_INFO_LENGTH;
 extern uint32_t APP_STORAGE_LENGTH;
@@ -34,13 +28,6 @@ extern uint32_t SWAP_APP_SIZE_ADDRESS;
 extern uint32_t APP_DOWNLOADED_FLAG_ADDRESS;
 extern uint32_t APP_BACKED_UP_FLAG_ADDRESS;
 
-inline uint8_t __attribute__((section(".app_info")))
-g_app_info[FLASH_SECTOR_SIZE];
-inline uint8_t __attribute__((section(".app_storage")))
-g_app_storage[FLASH_SECTOR_SIZE];
+extern uint8_t g_app_info[FLASH_PAGE_SIZE];
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif  // PICO_BOOTLOADER_LINKER_DEFINITIONS_H

@@ -3,8 +3,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cstring>
 #include <memory>
 
+#include "linker_definitions.h"
 #include "mocks/mock_bootloader_lib.h"
 #include "software_download.h"
 
@@ -39,58 +41,19 @@ class BootloaderTest : public testing::Test {
 };
 
 TEST_F(BootloaderTest, CheckDownloadAppFlag) {
-    MockPicoInterface mock_pico_interface{};
+    MockPicoInterface mock_pico_interface;
     std::unique_ptr<Bootloader> uut{
         std::make_unique<SoftwareDownload>(mock_pico_interface)};
 
-    /* EXPECT_EQ(uut->check_download_app_flag(), true); */
+    app_info_t app_info{};
+    std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
+    EXPECT_EQ(uut->check_download_app_flag(), false);
 
-    /* EXPECT_EQ(uut->check_download_app_flag(), false); */
+    app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
+    std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
+    EXPECT_EQ(uut->check_download_app_flag(), true);
+
+    app_info.content.app_downloaded = true;
+    std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
+    EXPECT_EQ(uut->check_download_app_flag(), false);
 }
-
-/* TEST_F(BootloaderTest, CheckRestoreAtBoot) { */
-/*     MockBootloaderLib mock_bootloader_lib{}; */
-/*     Bootloader uut{mock_bootloader_lib}; */
-
-/*     EXPECT_CALL(mock_bootloader_lib, check_restore_at_boot()) */
-/*         .WillOnce(testing::Return(true)); */
-/*     EXPECT_EQ(uut.check_restore_at_boot(), true); */
-
-/*     EXPECT_CALL(mock_bootloader_lib, check_restore_at_boot()) */
-/*         .WillOnce(testing::Return(false)); */
-/*     EXPECT_EQ(uut.check_restore_at_boot(), false); */
-/* } */
-
-/* TEST_F(BootloaderTest, SwapAppImages) { */
-/*     MockBootloaderLib mock_bootloader_lib{}; */
-/*     Bootloader uut{mock_bootloader_lib}; */
-
-/*     EXPECT_CALL(mock_bootloader_lib, swap_app_images()); */
-/*     uut.swap_app_images(); */
-/* } */
-
-/* TEST_F(BootloaderTest, VerifyAppHash) { */
-/*     MockBootloaderLib mock_bootloader_lib{}; */
-/*     Bootloader uut{mock_bootloader_lib}; */
-
-/*     EXPECT_CALL(mock_bootloader_lib, verify_app_hash()) */
-/*         .WillOnce(testing::Return(true)); */
-/*     EXPECT_EQ(uut.verify_app_hash(), true); */
-
-/*     EXPECT_CALL(mock_bootloader_lib, verify_app_hash()) */
-/*         .WillOnce(testing::Return(false)); */
-/*     EXPECT_EQ(uut.verify_app_hash(), false); */
-/* } */
-
-/* TEST_F(BootloaderTest, VerifySwapAppHash) { */
-/*     MockBootloaderLib mock_bootloader_lib{}; */
-/*     Bootloader uut{mock_bootloader_lib}; */
-
-/*     EXPECT_CALL(mock_bootloader_lib, verify_swap_app_hash()) */
-/*         .WillOnce(testing::Return(true)); */
-/*     EXPECT_EQ(uut.verify_swap_app_hash(), true); */
-
-/*     EXPECT_CALL(mock_bootloader_lib, verify_swap_app_hash()) */
-/*         .WillOnce(testing::Return(false)); */
-/*     EXPECT_EQ(uut.verify_swap_app_hash(), false); */
-/* } */

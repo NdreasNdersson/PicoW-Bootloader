@@ -44,13 +44,9 @@ class SoftwareDownload : public Bootloader {
     void swap_app_images() override;
 
    private:
-    static auto verify_hash(
-        const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
-        const uint32_t app_address, const uint32_t app_size_address) -> bool;
-    void read_app_info();
-    auto write_app_info() -> bool;
+    static void read_app_info(app_info_t &app_info);
+    auto write_app_info(app_info_t &app_info) -> bool;
 
-    app_info_t m_app_info;
     uint32_t m_pages_flashed;
     PicoInterface &pico_interface_;
 
