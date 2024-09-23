@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "bootloader.h"
-#include "hardware/flash.h"
+#include "pico_interface.h"
 
 constexpr uint32_t TRUE_MAGIC_NUMBER{14253U};
 constexpr uint32_t FALSE_NUMBER{0U};
@@ -25,14 +25,14 @@ union app_info_t {
 
 class SoftwareDownload : public Bootloader {
    public:
-    SoftwareDownload();
-    virtual ~SoftwareDownload();
+    SoftwareDownload(PicoInterface &pico_interface);
+    ~SoftwareDownload() = default;
 
-    void init_download(const uint32_t &size) override;
+    auto init_download(const uint32_t &size) -> bool override;
     void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) override;
     auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
         -> bool override;
-    void download_complete() override;
+    auto download_complete() -> bool override;
     auto verify_app_hash() -> bool override;
     auto verify_swap_app_hash() -> bool override;
     void reboot(uint32_t delay) override;
@@ -48,13 +48,11 @@ class SoftwareDownload : public Bootloader {
         const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
         const uint32_t app_address, const uint32_t app_size_address) -> bool;
     void read_app_info();
-    void write_app_info();
-    static void erase_and_program_app_info(void *data);
-    static void program(void *data);
-    static void erase_swap(void *data);
+    auto write_app_info() -> bool;
 
     app_info_t m_app_info;
     uint32_t m_pages_flashed;
+    PicoInterface &pico_interface_;
 
     using flash_data_t = struct flash_data_t_ {
         const unsigned char *binary_block;

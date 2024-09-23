@@ -21,6 +21,7 @@ else ()
     set(NAME pico_bootloader)
     add_executable(${NAME}
         src/main.cpp
+        software_download/src/hal/pico_interface_impl.cpp
     )
 
     # initialize the Raspberry Pi Pico SDK
@@ -44,6 +45,7 @@ else ()
     target_link_libraries(${NAME}
         pico_stdlib                        # for core pico functionality
         cmsis_core
+        pico_base
         software_download_lib
     )
     target_link_options(${NAME} PRIVATE

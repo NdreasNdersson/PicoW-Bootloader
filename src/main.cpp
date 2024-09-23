@@ -5,6 +5,7 @@
 #include "RP2040.h"
 #include "bootloader.h"
 #include "common_definitions.h"
+#include "hal/pico_interface_impl.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
 #include "software_download.h"
@@ -42,8 +43,9 @@ auto main() -> int {
     assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
+    PicoInterfaceImpl pico_interface_impl{};
     std::unique_ptr<Bootloader> bootloader{
-        std::make_unique<SoftwareDownload>()};
+        std::make_unique<SoftwareDownload>(pico_interface_impl)};
     if (bootloader->check_download_app_flag()) {
         puts("New app was downloaded!");
         if (bootloader->verify_swap_app_hash()) {
