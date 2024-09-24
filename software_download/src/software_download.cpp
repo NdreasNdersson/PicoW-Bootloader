@@ -1,5 +1,6 @@
 #include "software_download.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -28,9 +29,9 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
     m_pages_flashed = 0;
 
     auto status{true};
-    const auto sectors_to_erase{(size + FLASH_SECTOR_SIZE - 1) /
+    const auto SECTORS_TO_ERASE{(size + FLASH_SECTOR_SIZE - 1) /
                                 FLASH_SECTOR_SIZE};
-    for (size_t i{0}; i < sectors_to_erase; i++) {
+    for (size_t i{0}; i < SECTORS_TO_ERASE; i++) {
         if (!pico_interface_.erase_flash(
                 ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                     i * FLASH_SECTOR_SIZE,
@@ -161,10 +162,16 @@ auto SoftwareDownload::check_restore_at_boot() const -> bool {
 }
 
 void SoftwareDownload::swap_app_images() {
-    uint8_t swap_buffer_app[FLASH_SECTOR_SIZE];
-    uint8_t swap_buffer_downloaded_app[FLASH_SECTOR_SIZE];
+    uint8_t swap_buffer_app[FLASH_SECTOR_SIZE]{};
+    uint8_t swap_buffer_downloaded_app[FLASH_SECTOR_SIZE]{};
 
-    const auto SECTORS_TO_SWAP{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
+    app_info_t app_info{};
+    read_app_info(app_info);
+    auto size{
+        std::max(app_info.content.app_size, app_info.content.swap_app_size)};
+
+    const auto SECTORS_TO_SWAP{(size + FLASH_SECTOR_SIZE - 1) /
+                               FLASH_SECTOR_SIZE};
 
     for (size_t i{0}; i < SECTORS_TO_SWAP; i++) {
         memcpy(swap_buffer_app,
@@ -191,8 +198,6 @@ void SoftwareDownload::swap_app_images() {
             swap_buffer_app, FLASH_SECTOR_SIZE);
     }
 
-    app_info_t app_info{};
-    read_app_info(app_info);
     // Update app info
     {
         unsigned char temp_hash[SHA256_DIGEST_SIZE];
