@@ -27,7 +27,8 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
     m_pages_flashed = 0;
 
     auto status{true};
-    const auto sectors_to_erase{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
+    const auto sectors_to_erase{(size + FLASH_SECTOR_SIZE - 1) /
+                                FLASH_SECTOR_SIZE};
     for (size_t i{0}; i < sectors_to_erase; i++) {
         if (!pico_interface_.erase_flash(
                 ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
@@ -42,19 +43,27 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
     return status;
 }
 
-void SoftwareDownload::set_hash(
-    const unsigned char app_hash[SHA256_DIGEST_SIZE]) {
+auto SoftwareDownload::set_hash(
+    const unsigned char app_hash[SHA256_DIGEST_SIZE]) -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     std::memcpy(app_info.content.swap_app_hash, app_hash, SHA256_DIGEST_SIZE);
+
+    auto status{true};
     if (!write_app_info(app_info)) {
         printf("Write app info failed\n");
+        status = false;
     }
+
+    return status;
 }
 
 auto SoftwareDownload::write_app(
     const unsigned char binary_block[FLASH_PAGE_SIZE]) -> bool {
-    if ((m_pages_flashed * FLASH_PAGE_SIZE) > ADDR_AS_U32(APP_LENGTH)) {
+    app_info_t app_info{};
+    read_app_info(app_info);
+
+    if ((m_pages_flashed * FLASH_PAGE_SIZE) > app_info.content.swap_app_size) {
         return false;
     }
 
@@ -159,8 +168,6 @@ void SoftwareDownload::swap_app_images() {
 
     const auto SECTORS_TO_SWAP{ADDR_AS_U32(APP_LENGTH) / FLASH_SECTOR_SIZE};
 
-    printf("Swap %u sectors\n", SECTORS_TO_SWAP);
-
     for (size_t i{0}; i < SECTORS_TO_SWAP; i++) {
         memcpy(swap_buffer_app,
                reinterpret_cast<void *>(ADDR_AS_U32(APP_ADDRESS) +
@@ -222,7 +229,6 @@ auto SoftwareDownload::write_app_info(app_info_t &app_info) -> bool {
         printf("Bootloader lib flash safe execute failed\n");
         return false;
     }
-    printf("swap size %u\n", app_info.content.swap_app_size);
     if (!pico_interface_.store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
             static_cast<uint8_t *>(app_info.raw), FLASH_PAGE_SIZE)) {

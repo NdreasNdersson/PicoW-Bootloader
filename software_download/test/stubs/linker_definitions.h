@@ -1,8 +1,9 @@
 #ifndef PICO_BOOTLOADER_LINKER_DEFINITIONS_H
 #define PICO_BOOTLOADER_LINKER_DEFINITIONS_H
 
+#include <cstdint>
+
 #include "hardware/flash.h"
-#include "software_download.h"
 
 #define XIP_BASE 0x10
 #define ADDR_AS_U32(Data) (uint32_t) & (Data)

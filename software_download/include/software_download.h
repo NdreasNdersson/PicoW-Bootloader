@@ -29,7 +29,8 @@ class SoftwareDownload : public Bootloader {
     ~SoftwareDownload() = default;
 
     auto init_download(const uint32_t &size) -> bool override;
-    void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) override;
+    auto set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE])
+        -> bool override;
     auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
         -> bool override;
     auto download_complete() -> bool override;

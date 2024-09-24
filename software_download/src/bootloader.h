@@ -12,7 +12,8 @@ class Bootloader {
    public:
     virtual ~Bootloader() = default;
     virtual auto init_download(const uint32_t &size) -> bool = 0;
-    virtual void set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE]) = 0;
+    virtual auto set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE])
+        -> bool = 0;
     virtual auto write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
         -> bool = 0;
     virtual auto download_complete() -> bool = 0;
