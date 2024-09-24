@@ -52,3 +52,9 @@ else ()
         -L${CMAKE_SOURCE_DIR}/linker_common
     )
 endif()
+
+execute_process(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+)

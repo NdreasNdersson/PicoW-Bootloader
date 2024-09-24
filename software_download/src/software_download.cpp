@@ -20,7 +20,7 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
     app_info.content.app_backed_up = FALSE_NUMBER;
     app_info.content.app_downloaded = FALSE_NUMBER;
     if (!write_app_info(app_info)) {
-        printf("Write app info failed");
+        printf("Write app info failed\n");
         return false;
     }
 
@@ -34,7 +34,7 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
                     i * FLASH_SECTOR_SIZE,
                 FLASH_SECTOR_SIZE)) {
             status = false;
-            printf("Erasing app sectors failed!");
+            printf("Erasing app sectors failed!\n");
             break;
         }
     }
@@ -48,7 +48,7 @@ void SoftwareDownload::set_hash(
     read_app_info(app_info);
     std::memcpy(app_info.content.swap_app_hash, app_hash, SHA256_DIGEST_SIZE);
     if (!write_app_info(app_info)) {
-        printf("Write app info failed");
+        printf("Write app info failed\n");
     }
 }
 
@@ -62,7 +62,7 @@ auto SoftwareDownload::write_app(
             ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                 m_pages_flashed * FLASH_PAGE_SIZE,
             binary_block, FLASH_PAGE_SIZE)) {
-        printf("Write app chuck failed");
+        printf("Write app chuck failed\n");
         return false;
     } else {
         m_pages_flashed++;
@@ -76,17 +76,17 @@ auto SoftwareDownload::download_complete() -> bool {
     read_app_info(app_info);
     app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
     if (!write_app_info(app_info)) {
-        printf("Write app info failed");
+        printf("Write app info failed\n");
         return false;
     }
 
     auto status{true};
     if (verify_swap_app_hash()) {
-        printf("Swap app hash verification successful, will reboot in 1s...");
+        printf("Swap app hash verification successful, will reboot in 1s...\n");
         uint32_t reboot_delay_ms{1000};
         reboot(reboot_delay_ms);
     } else {
-        printf("Swap app hash verification failed");
+        printf("Swap app hash verification failed\n");
         status = false;
     }
 
@@ -124,7 +124,7 @@ auto SoftwareDownload::restore(uint32_t delay) -> bool {
 
     app_info.content.app_restore_at_boot = TRUE_MAGIC_NUMBER;
     if (!write_app_info(app_info)) {
-        printf("Write app info failed");
+        printf("Write app info failed\n");
         return false;
     }
 
@@ -208,7 +208,7 @@ void SoftwareDownload::swap_app_images() {
     app_info.content.app_restore_at_boot = FALSE_NUMBER;
 
     if (!write_app_info(app_info)) {
-        printf("Write app info failed");
+        printf("Write app info failed\n");
     }
 }
 
@@ -219,13 +219,14 @@ void SoftwareDownload::read_app_info(app_info_t &app_info) {
 auto SoftwareDownload::write_app_info(app_info_t &app_info) -> bool {
     if (!pico_interface_.erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS), FLASH_SECTOR_SIZE)) {
-        printf("Bootloader lib flash safe execute failed");
+        printf("Bootloader lib flash safe execute failed\n");
         return false;
     }
+    printf("swap size %u\n", app_info.content.swap_app_size);
     if (!pico_interface_.store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
             static_cast<uint8_t *>(app_info.raw), FLASH_PAGE_SIZE)) {
-        printf("Bootloader lib flash safe execute failed");
+        printf("Bootloader lib flash safe execute failed\n");
         return false;
     }
 
