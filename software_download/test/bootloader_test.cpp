@@ -353,6 +353,62 @@ TEST_F(BootloaderTest, VerifySwapAppHash) {
     }
 }
 
+TEST_F(BootloaderTest, Reboot) {
+    testing::StrictMock<MockPicoInterface> mock_pico_interface;
+    std::unique_ptr<Bootloader> uut{
+        std::make_unique<SoftwareDownload>(mock_pico_interface)};
+
+    uint32_t delay{1};
+    EXPECT_CALL(mock_pico_interface, watchdog_enable(delay, true));
+    uut->reboot(delay);
+
+    delay = 0xFFFFFFFF;
+    EXPECT_CALL(mock_pico_interface, watchdog_enable(8388, true));
+    uut->reboot(delay);
+}
+
+TEST_F(BootloaderTest, Restore) {
+    testing::StrictMock<MockPicoInterface> mock_pico_interface;
+    std::unique_ptr<Bootloader> uut{
+        std::make_unique<SoftwareDownload>(mock_pico_interface)};
+
+    uint32_t delay{1};
+    EXPECT_FALSE(uut->restore(delay));
+
+    app_info_t app_info{};
+    app_info.content.app_backed_up = TRUE_MAGIC_NUMBER;
+    std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
+    {
+        EXPECT_CALL(mock_pico_interface,
+                    erase_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
+                                FLASH_SECTOR_SIZE))
+            .WillOnce(testing::Return(false));
+        EXPECT_FALSE(uut->restore(delay));
+    }
+
+    {
+        app_info_t actual_app_info{};
+        auto copy_app_info = [&actual_app_info](uint32_t arg0,
+                                                const uint8_t *arg1,
+                                                size_t arg2) {
+            std::memcpy(actual_app_info.raw, arg1, FLASH_PAGE_SIZE);
+        };
+        EXPECT_CALL(mock_pico_interface,
+                    erase_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
+                                FLASH_SECTOR_SIZE))
+            .WillOnce(testing::Return(true));
+        EXPECT_CALL(mock_pico_interface,
+                    store_to_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
+                                   testing::_, FLASH_PAGE_SIZE))
+            .WillOnce(testing::DoAll(testing::Invoke(copy_app_info),
+                                     testing::Return(true)));
+        EXPECT_CALL(mock_pico_interface, watchdog_enable(delay, true));
+        EXPECT_TRUE(uut->restore(delay));
+        EXPECT_EQ(actual_app_info.content.app_restore_at_boot,
+                  TRUE_MAGIC_NUMBER);
+    }
+}
+
 TEST_F(BootloaderTest, CheckDownloadAppFlag) {
     testing::StrictMock<MockPicoInterface> mock_pico_interface;
     std::unique_ptr<Bootloader> uut{

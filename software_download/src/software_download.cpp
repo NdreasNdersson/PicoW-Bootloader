@@ -138,10 +138,7 @@ auto SoftwareDownload::restore(uint32_t delay) -> bool {
         return false;
     }
 
-    if (delay > MAX_REBOOT_DELAY) {
-        delay = MAX_REBOOT_DELAY;
-    }
-    pico_interface_.watchdog_enable(delay, true);
+    reboot(delay);
 
     return true;
 }
