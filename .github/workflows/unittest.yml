@@ -1,4 +1,4 @@
-name: Build
+name: Unittest
 
 on:
   push:
@@ -22,11 +22,5 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Build
-      run: ./build_and_combine.sh ${{env.BUILD_TYPE}}
-
-    - name: Deploy
-      uses: actions/upload-artifact@v4
-      with:
-        name: Release
-        path: build/**/*.uf2
+    - name: Test
+      run: cmake --workflow --preset test
