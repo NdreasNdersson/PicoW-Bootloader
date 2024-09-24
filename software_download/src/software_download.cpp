@@ -6,6 +6,7 @@
 
 #include "hardware/flash.h"
 #include "linker_definitions.h"
+#include "pico_interface.h"
 
 constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
@@ -99,7 +100,7 @@ auto SoftwareDownload::download_complete() -> bool {
         status = false;
     }
 
-    return false;
+    return status;
 }
 
 auto SoftwareDownload::verify_app_hash() -> bool {
@@ -107,14 +108,14 @@ auto SoftwareDownload::verify_app_hash() -> bool {
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.app_hash,
                                        ADDR_AS_U32(APP_ADDRESS),
-                                       ADDR_AS_U32(APP_SIZE_ADDRESS));
+                                       SHA256_DIGEST_SIZE);
 }
 auto SoftwareDownload::verify_swap_app_hash() -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.swap_app_hash,
                                        ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                       ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS));
+                                       SHA256_DIGEST_SIZE);
 }
 
 void SoftwareDownload::reboot(uint32_t delay) {
