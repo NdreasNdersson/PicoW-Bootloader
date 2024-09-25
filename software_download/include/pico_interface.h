@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
-constexpr uint8_t SHA256_DIGEST_SIZE{32U};
+#include "types.h"
 
 class PicoInterface {
    public:

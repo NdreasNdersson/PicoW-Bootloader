@@ -21,7 +21,7 @@ else ()
     set(NAME pico_bootloader)
     add_executable(${NAME}
         src/main.cpp
-        software_download/src/hal/pico_interface_impl.cpp
+        software_download/src/bootloader.cpp
     )
 
     # initialize the Raspberry Pi Pico SDK
@@ -33,7 +33,7 @@ else ()
     # create map/bin/hex file etc.
     pico_add_extra_outputs(${NAME})
 
-    pico_set_linker_script(${NAME} ${CMAKE_SOURCE_DIR}/linker_common/bootloader.ld)
+    pico_set_linker_script(${NAME} ${CMAKE_CURRENT_SOURCE_DIR}/linker_common/bootloader.ld)
 
     include_directories(linker_common)
     include_directories(include_common)
@@ -49,12 +49,12 @@ else ()
         software_download_lib
     )
     target_link_options(${NAME} PRIVATE
-        -L${CMAKE_SOURCE_DIR}/linker_common
+        -L${CMAKE_CURRENT_SOURCE_DIR}/linker_common
     )
 endif()
 
 execute_process(
     COMMAND ${CMAKE_COMMAND} -E create_symlink
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-        ${CMAKE_SOURCE_DIR}/compile_commands.json
+        ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
 )

@@ -1,14 +1,12 @@
 #include <cassert>
 #include <cstdio>
-#include <memory>
 
 #include "RP2040.h"
 #include "bootloader.h"
 #include "common_definitions.h"
-#include "hal/pico_interface_impl.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
-#include "software_download.h"
+#include "pico_interface_impl.h"
 
 static void print_welcome_message() {
     puts("");
@@ -37,36 +35,34 @@ auto main() -> int {
     stdio_uart_init_full(PICO_UART, PICO_UART_BAUD_RATE, PICO_UART_TX_PIN,
                          PICO_UART_RX_PIN);
     print_welcome_message();
-    sleep_ms(1000);
 
     assert(SHA256_DIGEST_SIZE == ADDR_AS_U32(APP_HASH_LENGTH));
     assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
     PicoInterfaceImpl pico_interface_impl{};
-    std::unique_ptr<Bootloader> bootloader{
-        std::make_unique<SoftwareDownload>(pico_interface_impl)};
-    if (bootloader->check_download_app_flag()) {
+    Bootloader bootloader{pico_interface_impl};
+    if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
-        if (bootloader->verify_swap_app_hash()) {
+        if (bootloader.verify_swap_app_hash()) {
             puts("New app hash was verified, swap images!");
-            bootloader->swap_app_images();
+            bootloader.swap_app_images();
         } else {
             puts("New app hash verification FAILED!");
         }
     }
 
-    if (bootloader->check_restore_at_boot()) {
+    if (bootloader.check_restore_at_boot()) {
         puts("Restore was requested before power off!");
-        if (bootloader->verify_swap_app_hash()) {
+        if (bootloader.verify_swap_app_hash()) {
             puts("Backed up hash was verified, swap images!");
-            bootloader->swap_app_images();
+            bootloader.swap_app_images();
         } else {
             puts("Backed up app hash verification FAILED!");
         }
     }
 
-    if (bootloader->verify_app_hash()) {
+    if (bootloader.verify_app_hash()) {
         start_user_app();
     }
     puts("Hash verification failed");
