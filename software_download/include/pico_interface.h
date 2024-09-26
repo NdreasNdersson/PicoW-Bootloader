@@ -14,8 +14,7 @@ class PicoInterface {
     virtual auto erase_flash(uint32_t flash_offs, size_t count) -> bool = 0;
     virtual auto verify_hash(
         const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
-        const uint32_t app_address, const uint32_t app_size_address)
-        -> bool = 0;
+        const uint32_t app_address, const uint32_t app_size) -> bool = 0;
 };
 
 #endif  // PICO_BOOTLOADER_HAL_PICO_INTERFACE_H_

@@ -87,32 +87,6 @@ TEST_F(BootloaderTest, InitDownload) {
                     store_to_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
                                    testing::_, FLASH_PAGE_SIZE))
             .WillOnce(testing::Return(true));
-        EXPECT_CALL(mock_pico_interface,
-                    erase_flash(ADDR_AS_U32(SWAP_APP_ADDRESS) - XIP_BASE,
-                                FLASH_SECTOR_SIZE))
-            .WillOnce(testing::Return(true));
-        EXPECT_CALL(mock_pico_interface,
-                    erase_flash(ADDR_AS_U32(SWAP_APP_ADDRESS) - XIP_BASE +
-                                    FLASH_SECTOR_SIZE,
-                                FLASH_SECTOR_SIZE))
-            .WillOnce(testing::Return(false));
-        EXPECT_EQ(uut.init_download(size), false);
-    }
-
-    {
-        testing::InSequence s;
-        EXPECT_CALL(mock_pico_interface,
-                    erase_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
-                                FLASH_SECTOR_SIZE))
-            .WillOnce(testing::Return(true));
-        EXPECT_CALL(mock_pico_interface,
-                    store_to_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
-                                   testing::_, FLASH_PAGE_SIZE))
-            .WillOnce(testing::Return(true));
-        EXPECT_CALL(mock_pico_interface,
-                    erase_flash(testing::_, FLASH_SECTOR_SIZE))
-            .Times(3)
-            .WillRepeatedly(testing::Return(true));
         EXPECT_EQ(uut.init_download(size), true);
     }
 }
@@ -161,7 +135,20 @@ TEST_F(BootloaderTest, WriteApp) {
 
     unsigned char binary_block[FLASH_PAGE_SIZE]{'H', 'A', 'S', 'H'};
 
+    testing::InSequence s;
     {
+        EXPECT_CALL(mock_pico_interface,
+                    erase_flash(ADDR_AS_U32(SWAP_APP_ADDRESS) - XIP_BASE,
+                                FLASH_SECTOR_SIZE))
+            .WillOnce(testing::Return(false));
+        EXPECT_FALSE(uut.write_app(binary_block));
+    }
+
+    {
+        EXPECT_CALL(mock_pico_interface,
+                    erase_flash(ADDR_AS_U32(SWAP_APP_ADDRESS) - XIP_BASE,
+                                FLASH_SECTOR_SIZE))
+            .WillOnce(testing::Return(true));
         EXPECT_CALL(mock_pico_interface,
                     store_to_flash(ADDR_AS_U32(SWAP_APP_ADDRESS) - XIP_BASE,
                                    testing::_, FLASH_PAGE_SIZE))
@@ -219,8 +206,7 @@ TEST_F(BootloaderTest, DownloadComplete) {
                                    testing::_, FLASH_PAGE_SIZE))
             .WillOnce(testing::Return(true));
         EXPECT_CALL(mock_pico_interface,
-                    verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS)))
+                    verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS), 0))
             .WillOnce(testing::Return(false));
 
         EXPECT_FALSE(uut.download_complete());
@@ -235,6 +221,7 @@ TEST_F(BootloaderTest, DownloadComplete) {
         };
 
         app_info_t app_info{};
+        app_info.content.swap_app_size = __LINE__;
         std::memcpy(app_info.content.swap_app_hash, actual_hash,
                     SHA256_DIGEST_SIZE);
         std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
@@ -249,7 +236,7 @@ TEST_F(BootloaderTest, DownloadComplete) {
             .WillOnce(testing::Return(true));
         EXPECT_CALL(mock_pico_interface,
                     verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS)))
+                                app_info.content.swap_app_size))
             .WillOnce(testing::DoAll(testing::Invoke(copy_hash),
                                      testing::Return(true)));
         EXPECT_CALL(mock_pico_interface, watchdog_enable(testing::_, true));
@@ -269,8 +256,7 @@ TEST_F(BootloaderTest, VerifyAppHash) {
 
     {
         EXPECT_CALL(mock_pico_interface,
-                    verify_hash(testing::_, ADDR_AS_U32(APP_ADDRESS),
-                                ADDR_AS_U32(APP_SIZE_ADDRESS)))
+                    verify_hash(testing::_, ADDR_AS_U32(APP_ADDRESS), 0))
             .WillOnce(testing::Return(false));
 
         EXPECT_FALSE(uut.verify_app_hash());
@@ -285,12 +271,13 @@ TEST_F(BootloaderTest, VerifyAppHash) {
         };
 
         app_info_t app_info{};
+        app_info.content.app_size = __LINE__;
         std::memcpy(app_info.content.app_hash, actual_hash, SHA256_DIGEST_SIZE);
         std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
 
         EXPECT_CALL(mock_pico_interface,
                     verify_hash(testing::_, ADDR_AS_U32(APP_ADDRESS),
-                                ADDR_AS_U32(APP_SIZE_ADDRESS)))
+                                app_info.content.app_size))
             .WillOnce(testing::DoAll(testing::Invoke(copy_hash),
                                      testing::Return(true)));
 
@@ -309,8 +296,7 @@ TEST_F(BootloaderTest, VerifySwapAppHash) {
 
     {
         EXPECT_CALL(mock_pico_interface,
-                    verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS)))
+                    verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS), 0))
             .WillOnce(testing::Return(false));
 
         EXPECT_FALSE(uut.verify_swap_app_hash());
@@ -325,13 +311,14 @@ TEST_F(BootloaderTest, VerifySwapAppHash) {
         };
 
         app_info_t app_info{};
+        app_info.content.swap_app_size = __LINE__;
         std::memcpy(app_info.content.swap_app_hash, actual_hash,
                     SHA256_DIGEST_SIZE);
         std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
 
         EXPECT_CALL(mock_pico_interface,
                     verify_hash(testing::_, ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS)))
+                                app_info.content.swap_app_size))
             .WillOnce(testing::DoAll(testing::Invoke(copy_hash),
                                      testing::Return(true)));
 

@@ -26,7 +26,8 @@ class SoftwareDownload {
    private:
     void read_app_info(app_info_t &app_info);
     auto write_app_info(app_info_t &app_info) -> bool;
-    uint32_t m_pages_flashed;
+    uint32_t pages_flashed_;
+    uint32_t sectors_erased_;
     PicoInterface &pico_interface_;
 };
 

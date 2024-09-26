@@ -13,7 +13,7 @@
 constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 SoftwareDownload::SoftwareDownload(PicoInterface &pico_interface)
-    : m_pages_flashed{}, pico_interface_{pico_interface} {}
+    : pages_flashed_{}, sectors_erased_{}, pico_interface_{pico_interface} {}
 
 auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
     app_info_t app_info{};
@@ -27,23 +27,10 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
         return false;
     }
 
-    m_pages_flashed = 0;
+    pages_flashed_ = 0;
+    sectors_erased_ = 0;
 
-    auto status{true};
-    const auto SECTORS_TO_ERASE{(size + FLASH_SECTOR_SIZE - 1) /
-                                FLASH_SECTOR_SIZE};
-    for (size_t i{0}; i < SECTORS_TO_ERASE; i++) {
-        if (!pico_interface_.erase_flash(
-                ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
-                    i * FLASH_SECTOR_SIZE,
-                FLASH_SECTOR_SIZE)) {
-            status = false;
-            printf("Erasing app sectors failed!\n");
-            break;
-        }
-    }
-
-    return status;
+    return true;
 }
 
 auto SoftwareDownload::set_hash(
@@ -66,21 +53,39 @@ auto SoftwareDownload::write_app(
     app_info_t app_info{};
     read_app_info(app_info);
 
-    if ((m_pages_flashed * FLASH_PAGE_SIZE) > app_info.content.swap_app_size) {
+    if ((pages_flashed_ * FLASH_PAGE_SIZE) > app_info.content.swap_app_size) {
+        printf("Trying to flash more pages than expected, abort\n");
         return false;
     }
 
-    if (!pico_interface_.store_to_flash(
-            ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
-                m_pages_flashed * FLASH_PAGE_SIZE,
-            binary_block, FLASH_PAGE_SIZE)) {
-        printf("Write app chuck failed\n");
-        return false;
+    auto status{true};
+    if ((pages_flashed_ * FLASH_PAGE_SIZE) >=
+        (sectors_erased_ * FLASH_SECTOR_SIZE)) {
+        if (!pico_interface_.erase_flash(
+                ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
+                    sectors_erased_ * FLASH_SECTOR_SIZE,
+                FLASH_SECTOR_SIZE)) {
+            status = false;
+            printf(
+                "Erasing app sectors failed at sector %zu and address %#x!\n",
+                sectors_erased_,
+                ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
+                    sectors_erased_ * FLASH_SECTOR_SIZE);
+        } else {
+            sectors_erased_++;
+        }
+    }
+    if (status && pico_interface_.store_to_flash(
+                      ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
+                          pages_flashed_ * FLASH_PAGE_SIZE,
+                      binary_block, FLASH_PAGE_SIZE)) {
+        pages_flashed_++;
     } else {
-        m_pages_flashed++;
+        printf("Write app chuck failed\n");
+        status = false;
     }
 
-    return true;
+    return status;
 }
 
 auto SoftwareDownload::download_complete() -> bool {
@@ -94,7 +99,9 @@ auto SoftwareDownload::download_complete() -> bool {
 
     auto status{true};
     if (verify_swap_app_hash()) {
-        printf("Swap app hash verification successful, will reboot in 1s...\n");
+        printf(
+            "Swap app hash verification successful, will reboot in "
+            "1s...\n");
         uint32_t reboot_delay_ms{1000};
         reboot(reboot_delay_ms);
     } else {
@@ -110,14 +117,14 @@ auto SoftwareDownload::verify_app_hash() -> bool {
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.app_hash,
                                        ADDR_AS_U32(APP_ADDRESS),
-                                       ADDR_AS_U32(APP_SIZE_ADDRESS));
+                                       app_info.content.app_size);
 }
 auto SoftwareDownload::verify_swap_app_hash() -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.swap_app_hash,
                                        ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                       ADDR_AS_U32(SWAP_APP_SIZE_ADDRESS));
+                                       app_info.content.swap_app_size);
 }
 
 void SoftwareDownload::reboot(uint32_t delay) {

@@ -23,8 +23,8 @@ class PicoInterfaceImpl : public PicoInterface {
         -> bool override;
     auto erase_flash(uint32_t flash_offs, size_t count) -> bool override;
     auto verify_hash(const unsigned char stored_sha256[SHA256_DIGEST_SIZE],
-                     const uint32_t app_address,
-                     const uint32_t app_size_address) -> bool override;
+                     const uint32_t app_address, const uint32_t app_size)
+        -> bool override;
 
    private:
     static void program(void *data);
