@@ -1,5 +1,5 @@
-#ifndef PICO_BOOTLOADER_HAL_PICO_INTERFACE_H_
-#define PICO_BOOTLOADER_HAL_PICO_INTERFACE_H_
+#ifndef PICO_BOOTLOADER_PICO_INTERFACE_H_
+#define PICO_BOOTLOADER_PICO_INTERFACE_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -17,4 +17,4 @@ class PicoInterface {
         const uint32_t app_address, const uint32_t app_size) -> bool = 0;
 };
 
-#endif  // PICO_BOOTLOADER_HAL_PICO_INTERFACE_H_
+#endif  // PICO_BOOTLOADER_PICO_INTERFACE_H_
