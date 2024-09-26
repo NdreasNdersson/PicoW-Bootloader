@@ -42,3 +42,6 @@ build/
 
 # ctest
 Testing/
+
+# Compile commands
+compile_commands.json

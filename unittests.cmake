@@ -13,7 +13,6 @@ macro(package_add_test TESTNAME)
         PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-    # add_test(NAME ${TESTNAME} COMMAND ${TESTNAME})
 endmacro()
 
 include(FetchContent)
@@ -38,4 +37,4 @@ mark_as_advanced(
     gtest_disable_pthreads gtest_force_shared_crt gtest_hide_internal_symbols
 )
 
-add_subdirectory(bootloader/test)
+add_subdirectory(software_download/test)

@@ -10,6 +10,15 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
+
   build:
     runs-on: ubuntu-latest
     container:
@@ -18,18 +27,24 @@ jobs:
         - ${{ github.workspace }}:/project
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - run: ./build_and_combine.sh ${{env.BUILD_TYPE}}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Release
+          path: build/**/*.uf2
 
-    - name: Build
-      run: ./build_and_combine.sh ${{env.BUILD_TYPE}}
+  unittest:
+    runs-on: ubuntu-latest
+    container:
+      image: ndreasndersson/picow-plant-moisture-sensor:latest
+      volumes:
+        - ${{ github.workspace }}:/project
 
-    - name: Deploy
-      uses: actions/upload-artifact@v4
-      with:
-        name: Release
-        path: build/**/*.uf2
-
-    - name: Test
-      run: cmake --workflow --preset test
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - run: cmake --workflow --preset test

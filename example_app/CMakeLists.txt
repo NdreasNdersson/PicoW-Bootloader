@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13...3.27)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Blink
-set(NAME ${NAME}_EXAMPLE_APP)
+set(NAME blink)
 add_executable(${NAME}
     src/hello_world.cpp
 )
@@ -22,7 +22,7 @@ pico_add_extra_outputs(${NAME})
 pico_set_linker_script(${NAME} ${CMAKE_CURRENT_SOURCE_DIR}/../linker_common/app.ld)
 
 # Blink fast
-set(NAME ${NAME}_2)
+set(NAME blink_fast)
 add_executable(${NAME}
     src/picow_blink_fast.cpp
 )

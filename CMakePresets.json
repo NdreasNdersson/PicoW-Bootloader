@@ -28,7 +28,7 @@
       "generator": "Ninja",
       "toolchainFile": "toolchains/gcc.cmake",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ],
