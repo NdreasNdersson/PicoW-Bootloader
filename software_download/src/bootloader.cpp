@@ -17,44 +17,19 @@ Bootloader::Bootloader(PicoInterface &pico_interface)
       pico_interface_{pico_interface},
       software_download_{pico_interface_} {}
 
-auto Bootloader::init_download(const uint32_t &size) -> bool {
-    return software_download_.init_download(size);
-}
-
-auto Bootloader::set_hash(const unsigned char app_hash[SHA256_DIGEST_SIZE])
-    -> bool {
-    return software_download_.set_hash(app_hash);
-}
-
-auto Bootloader::write_app(const unsigned char binary_block[FLASH_PAGE_SIZE])
-    -> bool {
-    return software_download_.write_app(binary_block);
-}
-
-auto Bootloader::download_complete() -> bool {
-    return software_download_.download_complete();
-}
-
-auto Bootloader::verify_app_hash() -> bool {
+auto Bootloader::verify_app_hash() const -> bool {
     return software_download_.verify_app_hash();
 }
-auto Bootloader::verify_swap_app_hash() -> bool {
+auto Bootloader::verify_swap_app_hash() const -> bool {
     return software_download_.verify_swap_app_hash();
 }
-
-void Bootloader::reboot(uint32_t delay) { software_download_.reboot(delay); }
-
-auto Bootloader::restore(uint32_t delay) -> bool {
-    return software_download_.restore(delay);
-}
-
-auto Bootloader::check_download_app_flag() const -> bool {
+auto Bootloader::check_download_app_flag() -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     return TRUE_MAGIC_NUMBER == app_info.content.app_downloaded;
 }
 
-auto Bootloader::check_restore_at_boot() const -> bool {
+auto Bootloader::check_restore_at_boot() -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     if ((app_info.content.app_backed_up == TRUE_MAGIC_NUMBER) &&
@@ -65,7 +40,7 @@ auto Bootloader::check_restore_at_boot() const -> bool {
     }
 }
 
-void Bootloader::swap_app_images() {
+void Bootloader::swap_app_images() const {
     uint8_t swap_buffer_app[FLASH_SECTOR_SIZE]{};
     uint8_t swap_buffer_downloaded_app[FLASH_SECTOR_SIZE]{};
 
@@ -130,7 +105,7 @@ void Bootloader::read_app_info(app_info_t &app_info) {
     std::memcpy(app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
 
-auto Bootloader::write_app_info(app_info_t &app_info) -> bool {
+auto Bootloader::write_app_info(app_info_t &app_info) const -> bool {
     if (!pico_interface_.erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS), FLASH_SECTOR_SIZE)) {
         printf("Bootloader lib flash safe execute failed\n");

@@ -34,7 +34,7 @@ auto SoftwareDownload::init_download(const uint32_t &size) -> bool {
 }
 
 auto SoftwareDownload::set_hash(
-    const unsigned char app_hash[SHA256_DIGEST_SIZE]) -> bool {
+    const unsigned char app_hash[SHA256_DIGEST_SIZE]) const -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     std::memcpy(app_info.content.swap_app_hash, app_hash, SHA256_DIGEST_SIZE);
@@ -88,7 +88,7 @@ auto SoftwareDownload::write_app(
     return status;
 }
 
-auto SoftwareDownload::download_complete() -> bool {
+auto SoftwareDownload::download_complete() const -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     app_info.content.app_downloaded = TRUE_MAGIC_NUMBER;
@@ -112,14 +112,14 @@ auto SoftwareDownload::download_complete() -> bool {
     return status;
 }
 
-auto SoftwareDownload::verify_app_hash() -> bool {
+auto SoftwareDownload::verify_app_hash() const -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.app_hash,
                                        ADDR_AS_U32(APP_ADDRESS),
                                        app_info.content.app_size);
 }
-auto SoftwareDownload::verify_swap_app_hash() -> bool {
+auto SoftwareDownload::verify_swap_app_hash() const -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     return pico_interface_.verify_hash(app_info.content.swap_app_hash,
@@ -127,14 +127,14 @@ auto SoftwareDownload::verify_swap_app_hash() -> bool {
                                        app_info.content.swap_app_size);
 }
 
-void SoftwareDownload::reboot(uint32_t delay_ms) {
+void SoftwareDownload::reboot(uint32_t delay_ms) const {
     if (delay_ms > MAX_REBOOT_DELAY) {
         delay_ms = MAX_REBOOT_DELAY;
     }
     pico_interface_.reboot(delay_ms);
 }
 
-auto SoftwareDownload::restore(uint32_t delay_ms) -> bool {
+auto SoftwareDownload::restore(uint32_t delay_ms) const -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     if (app_info.content.app_backed_up != TRUE_MAGIC_NUMBER) {
@@ -156,7 +156,7 @@ void SoftwareDownload::read_app_info(app_info_t &app_info) {
     std::memcpy(app_info.raw, g_app_info, FLASH_PAGE_SIZE);
 }
 
-auto SoftwareDownload::write_app_info(app_info_t &app_info) -> bool {
+auto SoftwareDownload::write_app_info(app_info_t &app_info) const -> bool {
     if (!pico_interface_.erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS), FLASH_SECTOR_SIZE)) {
         printf("Bootloader lib flash safe execute failed\n");
