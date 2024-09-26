@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.13...3.27)
 
 enable_testing()
 
-include_directories(stubs)
-include_directories(${CMAKE_SOURCE_DIR}/software_download/src)
-include_directories(${CMAKE_SOURCE_DIR}/software_download/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/stubs)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 package_add_test(BootloaderTest
-    bootloader_test.cpp
-    software_download_test.cpp
-    stubs/linker_definitions_stub.cpp
-    ${CMAKE_SOURCE_DIR}/software_download/src/bootloader.cpp
-    ${CMAKE_SOURCE_DIR}/software_download/src/software_download.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/bootloader_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/software_download_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/stubs/linker_definitions_stub.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/bootloader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/software_download.cpp
 )

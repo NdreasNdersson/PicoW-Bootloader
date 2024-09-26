@@ -8,8 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else ()
-    # initialize pico-sdk from submodule
-    # note: this must happen before project()
+    # Pull in Pico SDK (must be before project)
     include(pico_sdk_import.cmake)
 endif()
 
