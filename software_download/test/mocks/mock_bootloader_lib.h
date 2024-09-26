@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "pico_interface.h"
+#include "hal/pico_interface.h"
 
 class MockPicoInterface : public PicoInterface {
    public:

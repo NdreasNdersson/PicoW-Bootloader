@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "pico_interface.h"
+#include "hal/pico_interface.h"
 #include "software_download.h"
 #include "types.h"
 

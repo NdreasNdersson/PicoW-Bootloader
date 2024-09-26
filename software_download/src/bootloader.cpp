@@ -7,10 +7,6 @@
 
 #include "hardware/flash.h"
 #include "linker_definitions.h"
-#include "pico_interface.h"
-#include "software_download.h"
-
-constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 Bootloader::Bootloader(PicoInterface &pico_interface)
     : m_pages_flashed{},

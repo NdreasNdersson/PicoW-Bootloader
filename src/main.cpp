@@ -4,9 +4,9 @@
 #include "RP2040.h"
 #include "bootloader.h"
 #include "common_definitions.h"
+#include "hal/pico_interface_impl.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
-#include "pico_interface_impl.h"
 
 static void print_welcome_message() {
     puts("");

@@ -16,3 +16,5 @@ target_link_libraries(${NAME}
     hardware_exception
     hardware_watchdog
 )
+
+target_compile_definitions(${NAME} PRIVATE -DBOOTLOADER_BUILD)
