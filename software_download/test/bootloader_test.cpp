@@ -239,7 +239,7 @@ TEST_F(BootloaderTest, DownloadComplete) {
                                 app_info.content.swap_app_size))
             .WillOnce(testing::DoAll(testing::Invoke(copy_hash),
                                      testing::Return(true)));
-        EXPECT_CALL(mock_pico_interface, watchdog_enable(testing::_, true));
+        EXPECT_CALL(mock_pico_interface, reboot(testing::_));
 
         EXPECT_TRUE(uut.download_complete());
 
@@ -336,11 +336,11 @@ TEST_F(BootloaderTest, Reboot) {
     Bootloader uut{mock_pico_interface};
 
     uint32_t delay{1};
-    EXPECT_CALL(mock_pico_interface, watchdog_enable(delay, true));
+    EXPECT_CALL(mock_pico_interface, reboot(delay));
     uut.reboot(delay);
 
     delay = 0xFFFFFFFF;
-    EXPECT_CALL(mock_pico_interface, watchdog_enable(8388, true));
+    EXPECT_CALL(mock_pico_interface, reboot(8388));
     uut.reboot(delay);
 }
 
@@ -378,7 +378,7 @@ TEST_F(BootloaderTest, Restore) {
                                    testing::_, FLASH_PAGE_SIZE))
             .WillOnce(testing::DoAll(testing::Invoke(copy_app_info),
                                      testing::Return(true)));
-        EXPECT_CALL(mock_pico_interface, watchdog_enable(delay, true));
+        EXPECT_CALL(mock_pico_interface, reboot(delay));
         EXPECT_TRUE(uut.restore(delay));
         EXPECT_EQ(actual_app_info.content.app_restore_at_boot,
                   TRUE_MAGIC_NUMBER);

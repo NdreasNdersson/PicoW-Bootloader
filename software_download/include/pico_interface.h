@@ -8,7 +8,7 @@
 
 class PicoInterface {
    public:
-    virtual void watchdog_enable(uint32_t delay_ms, bool pause_on_debug) = 0;
+    virtual void reboot(uint32_t delay_ms) = 0;
     virtual auto store_to_flash(uint32_t flash_offs, const uint8_t *data,
                                 size_t count) -> bool = 0;
     virtual auto erase_flash(uint32_t flash_offs, size_t count) -> bool = 0;

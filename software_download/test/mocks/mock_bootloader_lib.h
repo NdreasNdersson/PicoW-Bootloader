@@ -6,8 +6,7 @@
 
 class MockPicoInterface : public PicoInterface {
    public:
-    MOCK_METHOD(void, watchdog_enable, (uint32_t delay_ms, bool paus_on_debug),
-                (override));
+    MOCK_METHOD(void, reboot, (uint32_t delay_ms), (override));
     MOCK_METHOD(bool, store_to_flash,
                 (uint32_t flash_offs, const uint8_t *data, size_t count),
                 (override));

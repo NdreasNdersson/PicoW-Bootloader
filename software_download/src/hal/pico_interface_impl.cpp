@@ -10,9 +10,8 @@
 
 constexpr uint32_t ENTER_EXIT_TIMEOUT_MS{1000U};
 
-void PicoInterfaceImpl::watchdog_enable(uint32_t delay_ms,
-                                        bool pause_on_debug) {
-    watchdog_enable(delay_ms, pause_on_debug);
+void PicoInterfaceImpl::reboot(uint32_t delay_ms) {
+    watchdog_enable(delay_ms, true);
 }
 
 auto PicoInterfaceImpl::store_to_flash(uint32_t flash_offs, const uint8_t *data,

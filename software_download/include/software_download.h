@@ -20,8 +20,8 @@ class SoftwareDownload {
     auto download_complete() -> bool;
     auto verify_app_hash() -> bool;
     auto verify_swap_app_hash() -> bool;
-    void reboot(uint32_t delay);
-    auto restore(uint32_t delay) -> bool;
+    void reboot(uint32_t delay_ms);
+    auto restore(uint32_t delay_ms) -> bool;
 
    private:
     void read_app_info(app_info_t &app_info);

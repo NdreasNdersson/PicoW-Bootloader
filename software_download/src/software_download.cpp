@@ -127,14 +127,14 @@ auto SoftwareDownload::verify_swap_app_hash() -> bool {
                                        app_info.content.swap_app_size);
 }
 
-void SoftwareDownload::reboot(uint32_t delay) {
-    if (delay > MAX_REBOOT_DELAY) {
-        delay = MAX_REBOOT_DELAY;
+void SoftwareDownload::reboot(uint32_t delay_ms) {
+    if (delay_ms > MAX_REBOOT_DELAY) {
+        delay_ms = MAX_REBOOT_DELAY;
     }
-    pico_interface_.watchdog_enable(delay, true);
+    pico_interface_.reboot(delay_ms);
 }
 
-auto SoftwareDownload::restore(uint32_t delay) -> bool {
+auto SoftwareDownload::restore(uint32_t delay_ms) -> bool {
     app_info_t app_info{};
     read_app_info(app_info);
     if (app_info.content.app_backed_up != TRUE_MAGIC_NUMBER) {
@@ -147,7 +147,7 @@ auto SoftwareDownload::restore(uint32_t delay) -> bool {
         return false;
     }
 
-    reboot(delay);
+    reboot(delay_ms);
 
     return true;
 }
