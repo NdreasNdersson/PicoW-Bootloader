@@ -15,10 +15,10 @@ constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 class SoftwareDownload::SoftwareDownloadImpl {
    public:
-    SoftwareDownloadImpl(PicoInterface &pico_interface)
-        : pages_flashed_{},
-          sectors_erased_{},
-          pico_interface_{pico_interface} {}
+    SoftwareDownloadImpl(PicoInterface *pico_interface)
+        : pico_interface_{pico_interface} {}
+
+    ~SoftwareDownloadImpl() = default;
 
     auto init_download(const uint32_t &size) -> bool {
         app_info_t app_info{};
@@ -67,7 +67,7 @@ class SoftwareDownload::SoftwareDownloadImpl {
         auto status{true};
         if ((pages_flashed_ * FLASH_PAGE_SIZE) >=
             (sectors_erased_ * FLASH_SECTOR_SIZE)) {
-            if (!pico_interface_.erase_flash(
+            if (!pico_interface_->erase_flash(
                     ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                         sectors_erased_ * FLASH_SECTOR_SIZE,
                     FLASH_SECTOR_SIZE)) {
@@ -82,7 +82,7 @@ class SoftwareDownload::SoftwareDownloadImpl {
                 sectors_erased_++;
             }
         }
-        if (status && pico_interface_.store_to_flash(
+        if (status && pico_interface_->store_to_flash(
                           ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                               pages_flashed_ * FLASH_PAGE_SIZE,
                           binary_block, FLASH_PAGE_SIZE)) {
@@ -122,23 +122,23 @@ class SoftwareDownload::SoftwareDownloadImpl {
     auto verify_app_hash() const -> bool {
         app_info_t app_info{};
         read_app_info(app_info);
-        return pico_interface_.verify_hash(app_info.content.app_hash,
-                                           ADDR_AS_U32(APP_ADDRESS),
-                                           app_info.content.app_size);
+        return pico_interface_->verify_hash(app_info.content.app_hash,
+                                            ADDR_AS_U32(APP_ADDRESS),
+                                            app_info.content.app_size);
     }
     auto verify_swap_app_hash() const -> bool {
         app_info_t app_info{};
         read_app_info(app_info);
-        return pico_interface_.verify_hash(app_info.content.swap_app_hash,
-                                           ADDR_AS_U32(SWAP_APP_ADDRESS),
-                                           app_info.content.swap_app_size);
+        return pico_interface_->verify_hash(app_info.content.swap_app_hash,
+                                            ADDR_AS_U32(SWAP_APP_ADDRESS),
+                                            app_info.content.swap_app_size);
     }
 
     void reboot(uint32_t delay_ms) const {
         if (delay_ms > MAX_REBOOT_DELAY) {
             delay_ms = MAX_REBOOT_DELAY;
         }
-        pico_interface_.reboot(delay_ms);
+        pico_interface_->reboot(delay_ms);
     }
 
     auto restore(uint32_t delay_ms) const -> bool {
@@ -164,13 +164,13 @@ class SoftwareDownload::SoftwareDownloadImpl {
     }
 
     auto write_app_info(app_info_t &app_info) const -> bool {
-        if (!pico_interface_.erase_flash(
+        if (!pico_interface_->erase_flash(
                 ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                 FLASH_SECTOR_SIZE)) {
             printf("Bootloader lib flash safe execute failed\n");
             return false;
         }
-        if (!pico_interface_.store_to_flash(
+        if (!pico_interface_->store_to_flash(
                 ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
                 static_cast<uint8_t *>(app_info.raw), FLASH_PAGE_SIZE)) {
             printf("Bootloader lib flash safe execute failed\n");
@@ -183,18 +183,18 @@ class SoftwareDownload::SoftwareDownloadImpl {
    private:
     uint32_t pages_flashed_{};
     uint32_t sectors_erased_{};
-    PicoInterface &pico_interface_;
+    std::unique_ptr<PicoInterface> pico_interface_;
 };
 
 #ifndef BOOTLOADER_TEST
 SoftwareDownload::SoftwareDownload() {
-    auto pico_interface{std::make_unique<PicoInterfaceImpl>()};
-    pimpl_ = std::make_unique<SoftwareDownloadImpl>(*pico_interface);
+    auto pico_interface{new PicoInterfaceImpl};
+    pimpl_ = std::make_unique<SoftwareDownloadImpl>(pico_interface);
 }
 #endif
 
 #ifdef BOOTLOADER_BUILD
-SoftwareDownload::SoftwareDownload(PicoInterface &pico_interface) {
+SoftwareDownload::SoftwareDownload(PicoInterface *pico_interface) {
     pimpl_ = std::make_unique<SoftwareDownloadImpl>(pico_interface);
 }
 #endif

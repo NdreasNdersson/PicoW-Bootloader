@@ -40,8 +40,7 @@ auto main() -> int {
     assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
     assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
 
-    PicoInterfaceImpl pico_interface_impl{};
-    Bootloader bootloader{pico_interface_impl};
+    Bootloader bootloader{new PicoInterfaceImpl()};
     if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
         if (bootloader.verify_swap_app_hash()) {

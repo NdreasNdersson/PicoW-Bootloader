@@ -17,7 +17,7 @@ class SoftwareDownload {
     SoftwareDownload();
 
 #ifdef BOOTLOADER_BUILD
-    SoftwareDownload(PicoInterface &pico_interface);
+    SoftwareDownload(PicoInterface *pico_interface);
 #endif
 
     ~SoftwareDownload();
