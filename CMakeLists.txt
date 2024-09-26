@@ -17,6 +17,7 @@ project(pico_bootloader)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     include(unittests.cmake)
 else ()
+
     set(NAME pico_bootloader)
     add_executable(${NAME}
         src/main.cpp
@@ -50,6 +51,8 @@ else ()
     target_link_options(${NAME} PRIVATE
         -L${CMAKE_CURRENT_SOURCE_DIR}/linker_common
     )
+
+    target_compile_definitions(${NAME} PRIVATE -DBOOTLOADER_BUILD)
 endif()
 
 execute_process(

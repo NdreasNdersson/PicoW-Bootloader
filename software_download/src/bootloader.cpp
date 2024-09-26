@@ -7,12 +7,8 @@
 
 #include "hardware/flash.h"
 #include "linker_definitions.h"
-#include "pico_interface.h"
-#include "software_download.h"
 
-constexpr uint32_t MAX_REBOOT_DELAY{8388};
-
-Bootloader::Bootloader(PicoInterface &pico_interface)
+Bootloader::Bootloader(PicoInterface *pico_interface)
     : m_pages_flashed{},
       pico_interface_{pico_interface},
       software_download_{pico_interface_} {}
@@ -61,17 +57,17 @@ void Bootloader::swap_app_images() const {
                reinterpret_cast<void *>(ADDR_AS_U32(SWAP_APP_ADDRESS) +
                                         i * FLASH_SECTOR_SIZE),
                FLASH_SECTOR_SIZE);
-        pico_interface_.erase_flash(
+        pico_interface_->erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_ADDRESS) + i * FLASH_SECTOR_SIZE,
             FLASH_SECTOR_SIZE);
-        pico_interface_.erase_flash(
+        pico_interface_->erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                 i * FLASH_SECTOR_SIZE,
             FLASH_SECTOR_SIZE);
-        pico_interface_.store_to_flash(
+        pico_interface_->store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_ADDRESS) + i * FLASH_SECTOR_SIZE,
             swap_buffer_downloaded_app, FLASH_SECTOR_SIZE);
-        pico_interface_.store_to_flash(
+        pico_interface_->store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(SWAP_APP_ADDRESS) +
                 i * FLASH_SECTOR_SIZE,
             swap_buffer_app, FLASH_SECTOR_SIZE);
@@ -106,12 +102,12 @@ void Bootloader::read_app_info(app_info_t &app_info) {
 }
 
 auto Bootloader::write_app_info(app_info_t &app_info) const -> bool {
-    if (!pico_interface_.erase_flash(
+    if (!pico_interface_->erase_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS), FLASH_SECTOR_SIZE)) {
         printf("Bootloader lib flash safe execute failed\n");
         return false;
     }
-    if (!pico_interface_.store_to_flash(
+    if (!pico_interface_->store_to_flash(
             ADDR_WITH_XIP_OFFSET_AS_U32(APP_INFO_ADDRESS),
             static_cast<uint8_t *>(app_info.raw), FLASH_PAGE_SIZE)) {
         printf("Bootloader lib flash safe execute failed\n");

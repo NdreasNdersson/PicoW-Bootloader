@@ -13,9 +13,13 @@
 
 class BootloaderTest : public testing::Test {
    protected:
-    BootloaderTest() : mock_pico_interface_{}, uut_{mock_pico_interface_} {}
+    BootloaderTest()
+        : mock_pico_interface_{new testing::StrictMock<MockPicoInterface>()},
+          uut_{mock_pico_interface_} {
+        testing::Mock::AllowLeak(mock_pico_interface_);
+    }
 
-    testing::StrictMock<MockPicoInterface> mock_pico_interface_;
+    testing::StrictMock<MockPicoInterface> *mock_pico_interface_;
     Bootloader uut_;
 };
 
@@ -33,9 +37,6 @@ TEST_F(BootloaderTest, CheckDownloadAppFlag) {
 }
 
 TEST_F(BootloaderTest, CheckRestoreAtBoot) {
-    testing::StrictMock<MockPicoInterface> mock_pico_interface_;
-    Bootloader uut_{mock_pico_interface_};
-
     EXPECT_EQ(uut_.check_restore_at_boot(), false);
 
     app_info_t app_info{};
@@ -53,9 +54,6 @@ TEST_F(BootloaderTest, CheckRestoreAtBoot) {
 }
 
 TEST_F(BootloaderTest, SwapAppImages) {
-    testing::StrictMock<MockPicoInterface> mock_pico_interface_;
-    Bootloader uut_{mock_pico_interface_};
-
     app_info_t app_info{};
     const auto app_size{FLASH_SECTOR_SIZE};
     const auto swap_app_size{FLASH_SECTOR_SIZE * 2 + FLASH_PAGE_SIZE};
@@ -70,11 +68,11 @@ TEST_F(BootloaderTest, SwapAppImages) {
                 SHA256_DIGEST_SIZE);
     std::memcpy(g_app_info, app_info.raw, FLASH_PAGE_SIZE);
 
-    EXPECT_CALL(mock_pico_interface_,
+    EXPECT_CALL(*mock_pico_interface_,
                 erase_flash(testing::_, FLASH_SECTOR_SIZE))
         .Times(6)
         .WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(mock_pico_interface_,
+    EXPECT_CALL(*mock_pico_interface_,
                 store_to_flash(testing::_, testing::_, FLASH_SECTOR_SIZE))
         .Times(6)
         .WillRepeatedly(testing::Return(true));
@@ -84,11 +82,11 @@ TEST_F(BootloaderTest, SwapAppImages) {
                                             size_t arg2) {
         std::memcpy(actual_app_info.raw, arg1, FLASH_PAGE_SIZE);
     };
-    EXPECT_CALL(mock_pico_interface_,
+    EXPECT_CALL(*mock_pico_interface_,
                 erase_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
                             FLASH_SECTOR_SIZE))
         .WillOnce(testing::Return(true));
-    EXPECT_CALL(mock_pico_interface_,
+    EXPECT_CALL(*mock_pico_interface_,
                 store_to_flash(ADDR_AS_U32(APP_INFO_ADDRESS) - XIP_BASE,
                                testing::_, FLASH_PAGE_SIZE))
         .WillOnce(testing::DoAll(testing::Invoke(copy_app_info),
