@@ -9,7 +9,7 @@
 #include "gmock/gmock.h"
 #include "hardware/flash.h"
 #include "linker_definitions.h"
-#include "mocks/mock_bootloader_lib.h"
+#include "mocks/mock_pico_interface.h"
 
 class BootloaderTest : public testing::Test {
    protected:
