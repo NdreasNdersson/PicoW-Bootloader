@@ -8,6 +8,8 @@
 #include "pico/flash.h"
 #include "types.h"
 
+namespace PicoBootloader {
+
 constexpr uint32_t ENTER_EXIT_TIMEOUT_MS{1000U};
 
 void PicoInterfaceImpl::reboot(uint32_t delay_ms) {
@@ -90,3 +92,5 @@ void PicoInterfaceImpl::erase(void *data) {
     auto erase_data{reinterpret_cast<erase_flash_t *>(data)};
     flash_range_erase(erase_data->flash_offs, erase_data->count);
 }
+
+}  // namespace PicoBootloader

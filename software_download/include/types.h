@@ -3,6 +3,8 @@
 
 #include "hardware/flash.h"
 
+namespace PicoBootloader {
+
 constexpr uint32_t TRUE_MAGIC_NUMBER{14253U};
 constexpr uint32_t FALSE_NUMBER{0U};
 constexpr uint8_t SHA256_DIGEST_SIZE{32U};
@@ -20,5 +22,6 @@ union app_info_t {
     struct content_t content;
     uint8_t raw[FLASH_PAGE_SIZE];
 };
+}  // namespace PicoBootloader
 
 #endif  // PICO_BOOTLOADER_TYPES_H_

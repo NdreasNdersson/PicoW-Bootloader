@@ -11,6 +11,7 @@
 #include "linker_definitions.h"
 #include "types.h"
 
+namespace PicoBootloader {
 constexpr uint32_t MAX_REBOOT_DELAY{8388};
 
 class SoftwareDownload::SoftwareDownloadImpl {
@@ -234,3 +235,5 @@ void SoftwareDownload::reboot(uint32_t delay_ms) const {
 auto SoftwareDownload::restore(uint32_t delay_ms) const -> bool {
     return pimpl_->restore(delay_ms);
 }
+
+}  // namespace PicoBootloader

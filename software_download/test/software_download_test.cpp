@@ -11,6 +11,8 @@
 #include "linker_definitions.h"
 #include "mocks/mock_pico_interface.h"
 
+namespace PicoBootloader {
+
 class SoftwareDownloadTest : public testing::Test {
    protected:
     SoftwareDownloadTest()
@@ -340,3 +342,5 @@ TEST_F(SoftwareDownloadTest, Restore) {
                   TRUE_MAGIC_NUMBER);
     }
 }
+
+}  // namespace PicoBootloader

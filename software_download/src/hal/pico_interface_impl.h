@@ -6,6 +6,8 @@
 
 #include "pico_interface.h"
 
+namespace PicoBootloader {
+
 using erase_flash_t = struct erase_flash_t_ {
     uint32_t flash_offs;
     size_t count;
@@ -30,5 +32,7 @@ class PicoInterfaceImpl : public PicoInterface {
     static void program(void *data);
     static void erase(void *data);
 };
+
+}  // namespace PicoBootloader
 
 #endif  // PICO_BOOTLOADER_PICO_INTERFACE_IMPL_H_

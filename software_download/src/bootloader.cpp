@@ -8,6 +8,8 @@
 #include "hardware/flash.h"
 #include "linker_definitions.h"
 
+namespace PicoBootloader {
+
 Bootloader::Bootloader(PicoInterface *pico_interface)
     : m_pages_flashed{},
       pico_interface_{pico_interface},
@@ -116,3 +118,5 @@ auto Bootloader::write_app_info(app_info_t &app_info) const -> bool {
 
     return true;
 }
+
+}  // namespace PicoBootloader

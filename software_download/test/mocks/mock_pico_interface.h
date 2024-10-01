@@ -4,6 +4,8 @@
 
 #include "hal/pico_interface.h"
 
+namespace PicoBootloader {
+
 class MockPicoInterface : public PicoInterface {
    public:
     MOCK_METHOD(void, reboot, (uint32_t delay_ms), (override));
@@ -17,3 +19,5 @@ class MockPicoInterface : public PicoInterface {
                  const uint32_t app_address, const uint32_t app_size_address),
                 (override));
 };
+
+}  // namespace PicoBootloader

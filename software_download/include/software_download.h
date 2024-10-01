@@ -10,6 +10,8 @@
 #include "hardware/flash.h"
 #include "types.h"
 
+namespace PicoBootloader {
+
 constexpr unsigned int DOWNLOAD_BLOCK_SIZE{FLASH_PAGE_SIZE};
 
 class SoftwareDownload {
@@ -36,5 +38,6 @@ class SoftwareDownload {
     class SoftwareDownloadImpl;
     std::unique_ptr<SoftwareDownloadImpl> pimpl_;
 };
+}  // namespace PicoBootloader
 
 #endif  // PICO_BOOTLOADER_SOFTWARE_DOWNLOAD_H_
