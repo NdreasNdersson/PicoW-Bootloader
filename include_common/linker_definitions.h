@@ -6,6 +6,8 @@
 #include "hardware/flash.h"
 #include "hardware/regs/addressmap.h"
 
+namespace PicoBootloader {
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,5 +44,7 @@ g_app_storage[FLASH_SECTOR_SIZE];
 #ifdef __cplusplus
 }
 #endif
+
+}  // namespace PicoBootloader
 
 #endif

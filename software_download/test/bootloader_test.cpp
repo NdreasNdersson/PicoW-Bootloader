@@ -11,6 +11,8 @@
 #include "linker_definitions.h"
 #include "mocks/mock_pico_interface.h"
 
+namespace PicoBootloader {
+
 class BootloaderTest : public testing::Test {
    protected:
     BootloaderTest()
@@ -106,3 +108,5 @@ TEST_F(BootloaderTest, SwapAppImages) {
             << "Hash differ at index " << i;
     }
 }
+
+}  // namespace PicoBootloader

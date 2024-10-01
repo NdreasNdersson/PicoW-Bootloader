@@ -7,6 +7,8 @@
 #include "software_download.h"
 #include "types.h"
 
+namespace PicoBootloader {
+
 class Bootloader {
    public:
     Bootloader(PicoInterface *pico_interface);
@@ -26,5 +28,7 @@ class Bootloader {
     PicoInterface *pico_interface_;
     SoftwareDownload software_download_;
 };
+
+}  // namespace PicoBootloader
 
 #endif  // PICO_BOOTLOADER_BOOTLOADER_H_

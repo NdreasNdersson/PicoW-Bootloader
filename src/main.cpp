@@ -4,6 +4,7 @@
 #include "RP2040.h"
 #include "bootloader.h"
 #include "common_definitions.h"
+#include "hal/pico_interface.h"
 #include "hal/pico_interface_impl.h"
 #include "linker_definitions.h"
 #include "pico/stdlib.h"
@@ -21,7 +22,7 @@ static void print_welcome_message() {
 static void start_user_app() {
     typedef void (*funcPtr)();
 
-    auto vtor{ADDR_AS_U32(APP_ADDRESS)};
+    auto vtor{ADDR_AS_U32(PicoBootloader::APP_ADDRESS)};
     printf("Start app at %#X...\n", vtor);
 
     uint32_t reset_vector = *(volatile uint32_t *)(vtor + 0x04);
@@ -36,11 +37,13 @@ auto main() -> int {
                          PICO_UART_RX_PIN);
     print_welcome_message();
 
-    assert(SHA256_DIGEST_SIZE == ADDR_AS_U32(APP_HASH_LENGTH));
-    assert(4 == ADDR_AS_U32(APP_INFO_FLAG_LENGTH));
-    assert(4 == ADDR_AS_U32(APP_SIZE_LENGTH));
+    assert(PicoBootloader::SHA256_DIGEST_SIZE ==
+           ADDR_AS_U32(PicoBootloader::APP_HASH_LENGTH));
+    assert(4 == ADDR_AS_U32(PicoBootloader::APP_INFO_FLAG_LENGTH));
+    assert(4 == ADDR_AS_U32(PicoBootloader::APP_SIZE_LENGTH));
 
-    Bootloader bootloader{new PicoInterfaceImpl()};
+    PicoBootloader::Bootloader bootloader{
+        new PicoBootloader::PicoInterfaceImpl()};
     if (bootloader.check_download_app_flag()) {
         puts("New app was downloaded!");
         if (bootloader.verify_swap_app_hash()) {
