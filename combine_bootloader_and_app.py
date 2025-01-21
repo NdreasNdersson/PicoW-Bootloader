@@ -182,8 +182,19 @@ def main():
 
     print(f"Total {len(raw_content)} bytes written")
 
-    
-    subprocess.run([os.path.dirname(os.path.realpath(__file__)) + "/external/uf2/utils/uf2conv.py", "-c", "-f", "RP2040", "-o", COMBINED_FILE_UF2, COMBINED_FILE])
+    subprocess.run(
+        [
+            os.path.dirname(os.path.realpath(__file__))
+            + "/external/uf2/utils/uf2conv.py",
+            "-c",
+            "-f",
+            "RP2040",
+            "-o",
+            COMBINED_FILE_UF2,
+            COMBINED_FILE,
+        ]
+    )
+
 
 if __name__ == "__main__":
     main()
