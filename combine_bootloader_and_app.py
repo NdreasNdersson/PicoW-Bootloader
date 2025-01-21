@@ -2,6 +2,8 @@
 
 import argparse
 import hashlib
+import subprocess
+import os
 from pathlib import Path
 
 # Constants
@@ -14,6 +16,7 @@ BOOTLOADER_FILE = "build/bootloader/PICO_BOOTLOADER.bin"
 APP_FILE = "build/example_app/PICO_BOOTLOADER_EXAMPLE_APP.bin"
 APP_DOWNLOAD_FILE = "build/example_app/PICO_BOOTLOADER_EXAMPLE_APP_2.bin"
 COMBINED_FILE = "build/PICO_BOOTLOADER_COMBINED.bin"
+COMBINED_FILE_UF2 = "build/PICO_BOOTLOADER_COMBINED.uf2"
 
 TRUE_VAL = 14253
 FALSE_VAL = 0
@@ -178,6 +181,19 @@ def main():
         file.write(raw_content)
 
     print(f"Total {len(raw_content)} bytes written")
+
+    subprocess.run(
+        [
+            os.path.dirname(os.path.realpath(__file__))
+            + "/external/uf2/utils/uf2conv.py",
+            "-c",
+            "-f",
+            "RP2040",
+            "-o",
+            COMBINED_FILE_UF2,
+            COMBINED_FILE,
+        ]
+    )
 
 
 if __name__ == "__main__":
