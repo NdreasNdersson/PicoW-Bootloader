@@ -189,6 +189,8 @@ def main():
             "-c",
             "-f",
             "RP2040",
+            "-b",
+            "0x10000000",
             "-o",
             COMBINED_FILE_UF2,
             COMBINED_FILE,
